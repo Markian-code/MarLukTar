@@ -23,7 +23,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         localStorage.setItem('userName', data.name);
         localStorage.setItem('userEmail', data.email);
 
-        // ➤ Weiterleitung zur Profilseite
+        // Weiterleitung zur Profilseite
         window.location.href = 'profile.html';
     } else {
         msg.style.color = 'red';

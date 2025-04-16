@@ -1,5 +1,5 @@
 <?php
-// 📌 Benutzerverwaltung: Registrierung, Login, Profilabruf und -aktualisierung
+// Benutzerverwaltung: Registrierung, Login, Profilabruf und -aktualisierung
 
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/dbaccess.php';
@@ -7,12 +7,12 @@ require_once __DIR__ . '/../config/dbaccess.php';
 $db = getDBConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
-// 📥 POST-Anfragen: zentral für alle Operationen
+// POST-Anfragen: zentral für alle Operationen
 if ($method === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
     $route = $data['route'] ?? '';
 
-    // 📤 1. PROFIL LADEN
+    // 1. PROFIL LADEN
     if ($route === 'profile') {
         $userId = intval($data['user_id'] ?? 0);
 
@@ -39,7 +39,7 @@ if ($method === 'POST') {
             echo json_encode(['message' => '❌ Fehler beim Laden des Profils']);
         }
 
-    // 📝 2. REGISTRIERUNG
+    // 2. REGISTRIERUNG
     } elseif ($route === 'register') {
         $username = trim($data['username'] ?? '');
         $email = trim($data['email'] ?? '');
@@ -63,7 +63,7 @@ if ($method === 'POST') {
             echo json_encode(['message' => '❌ Datenbankfehler: ' . $e->getMessage()]);
         }
 
-    // 🔐 3. LOGIN
+    // 3. LOGIN
     } elseif ($route === 'login') {
         $username = trim($data['username'] ?? '');
         $password = $data['password'] ?? '';
@@ -96,7 +96,7 @@ if ($method === 'POST') {
             echo json_encode(['message' => '❌ Fehler: ' . $e->getMessage()]);
         }
 
-    // 🔧 4. PROFIL AKTUALISIEREN
+    // 4. PROFIL AKTUALISIEREN
     } elseif ($route === 'update-profile') {
         $userId = intval($data['user_id'] ?? 0);
         $name = trim($data['name'] ?? '');
@@ -126,14 +126,14 @@ if ($method === 'POST') {
             echo json_encode(['message' => '❌ Fehler beim Speichern des Profils']);
         }
 
-    // ❌ UNBEKANNTE ROUTE
+    // UNBEKANNTE ROUTE
     } else {
         http_response_code(400);
         echo json_encode(['message' => '❌ Ungültige Route']);
     }
 
 } else {
-    // ❌ NUR POST ERLAUBT
+    // NUR POST ERLAUBT
     http_response_code(405);
     echo json_encode(['message' => '❌ Nur POST erlaubt']);
 }
