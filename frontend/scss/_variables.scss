@@ -1,0 +1,14 @@
+@use 'theme';
+
+$primary-color: theme.$primary-color;
+$accent-color: theme.$accent-color;
+$background-color: theme.$background-color;
+$text-color: theme.$text-color;
+$white: theme.$white;
+$button-gradient-start: theme.$button-gradient-start;
+$button-gradient-end: theme.$button-gradient-end;
+
+$border-radius: 10px;
+$font-size: 14px;
+$modal-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+$background-light: #f3f3f3;
