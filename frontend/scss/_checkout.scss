@@ -1,0 +1,28 @@
+@use 'variables';
+
+#checkout {
+  margin-top: 2rem;
+  text-align: center;
+
+  #checkout-btn {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(90deg, variables.$button-gradient-start, variables.$button-gradient-end);
+    border: none;
+    border-radius: variables.$border-radius;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+
+    &:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}

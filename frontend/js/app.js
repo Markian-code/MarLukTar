@@ -1,17 +1,16 @@
-// Globale Variable für den Warenkorb
+// Globale Variablen
 let cart = [];
-let allProducts = []; // Zwischenspeicherung aller Produkte für Detailansicht
+let allProducts = [];
 
-// Produkte laden + Filtern nach Suchbegriff
+// Produkte vom Server laden und nach Suchbegriff filtern
 async function fetchProducts(searchTerm = '') {
     const res = await fetch('http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=products');
-
     allProducts = await res.json();
 
     const list = document.getElementById('product-list');
     list.innerHTML = '';
 
-    // Filter nach Produktname (Suche)
+    // Produktsuche nach Namen
     const filtered = allProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -26,7 +25,7 @@ async function fetchProducts(searchTerm = '') {
             <p>${product.description}</p>
             <p><b>Preis:</b> €${product.price}</p>
             <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">
-              🛒 In den Warenkorb
+              In den Warenkorb
             </button>
         `;
         list.appendChild(div);
@@ -46,14 +45,13 @@ function addToCart(id, name, price) {
     updateCartDisplay();
 }
 
-// Menge ändern (plus oder minus)
+// Menge im Warenkorb ändern
 function changeQuantity(id, delta) {
     const item = cart.find(p => p.id === id);
     if (!item) return;
 
     item.quantity += delta;
 
-    // Wenn Menge <= 0, Produkt entfernen
     if (item.quantity <= 0) {
         cart = cart.filter(p => p.id !== id);
     }
@@ -61,13 +59,13 @@ function changeQuantity(id, delta) {
     updateCartDisplay();
 }
 
-// Produkt vollständig entfernen
+// Produkt aus dem Warenkorb entfernen
 function removeFromCart(id) {
     cart = cart.filter(p => p.id !== id);
     updateCartDisplay();
 }
 
-// Warenkorb anzeigen und Gesamtsumme berechnen
+// Warenkorb anzeigen und aktualisieren
 function updateCartDisplay() {
     const cartList = document.getElementById("cart-list");
     const cartTotal = document.getElementById("cart-total");
@@ -80,15 +78,15 @@ function updateCartDisplay() {
         itemDiv.classList.add("cart-item");
 
         itemDiv.innerHTML = `
-      <div class="cart-item-info">
-        ${item.name} x${item.quantity} – €${(item.price * item.quantity).toFixed(2)}
-      </div>
-      <div class="cart-item-controls">
-        <button onclick="changeQuantity('${item.id}', 1)">➕</button>
-        <button onclick="changeQuantity('${item.id}', -1)">➖</button>
-        <button onclick="removeFromCart('${item.id}')">🗑️</button>
-      </div>
-    `;
+            <div class="cart-item-info">
+                ${item.name} x${item.quantity} – €${(item.price * item.quantity).toFixed(2)}
+            </div>
+            <div class="cart-item-controls">
+                <button onclick="changeQuantity('${item.id}', 1)">+</button>
+                <button onclick="changeQuantity('${item.id}', -1)">-</button>
+                <button onclick="removeFromCart('${item.id}')">Entfernen</button>
+            </div>
+        `;
 
         cartList.appendChild(itemDiv);
         sum += item.price * item.quantity;
@@ -97,7 +95,7 @@ function updateCartDisplay() {
     cartTotal.textContent = `€${sum.toFixed(2)}`;
 }
 
-// Produkt-Detailansicht im Modal anzeigen
+// Detailansicht im Modal anzeigen
 function showDetails(id) {
     const product = allProducts.find(p => p.id === id);
     if (product) {
@@ -111,14 +109,96 @@ function showDetails(id) {
 }
 
 // Modal schließen
-document.getElementById('modal-close').addEventListener('click', () => {
-    document.getElementById('modal').classList.add('hidden');
-});
+const closeBtn = document.getElementById('modal-close');
+if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        document.getElementById('modal').classList.add('hidden');
+    });
+}
 
-// Live-Suche bei Eingabe im Suchfeld
-document.getElementById('search').addEventListener('input', (e) => {
-    fetchProducts(e.target.value);
-});
+// Produktsuche live filtern
+const searchInput = document.getElementById('search');
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        fetchProducts(e.target.value);
+    });
+}
 
-// Initiales Laden der Produkte
-fetchProducts();
+// Checkout-Button aktivieren
+const checkoutButton = document.getElementById('checkout-btn');
+if (checkoutButton) {
+    checkoutButton.addEventListener('click', checkout);
+}
+
+// Bestellung absenden
+async function checkout() {
+    if (cart.length === 0) {
+        alert('Ihr Warenkorb ist leer.');
+        return;
+    }
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        alert('Bitte zuerst einloggen.');
+        return;
+    }
+
+    try {
+        const res = await fetch('http://localhost/MarLukTar/backend/logic/OrderHandler.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                cart: cart,
+                total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert('Bestellung erfolgreich abgeschickt!');
+            cart = [];
+            updateCartDisplay();
+        } else {
+            alert('Fehler bei der Bestellung: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Fehler beim Checkout:', error);
+        alert('Unbekannter Fehler beim Checkout.');
+    }
+}
+
+// Benutzerstatus prüfen und Navigation aktualisieren
+function updateUserNavigation() {
+    const userId = localStorage.getItem('userId');
+    const nav = document.getElementById('user-nav');
+
+    if (nav) {
+        if (userId) {
+            nav.innerHTML = `
+                <a href="profile.html">Mein Profil</a>
+                <a href="#" onclick="logout()">Logout</a>
+            `;
+        } else {
+            nav.innerHTML = `
+                <a href="login.html" class="btn-login">🔐 Einloggen</a>
+                <a href="register.html" class="btn-register">📝 Registrieren</a>
+            `;
+        }
+    }
+}
+
+// Logout-Funktion
+function logout() {
+    localStorage.clear();
+    updateUserNavigation(); // Navigation sofort updaten
+}
+
+// Beim Laden der Seite Aktionen ausführen
+window.addEventListener('DOMContentLoaded', () => {
+    updateUserNavigation();
+    fetchProducts();
+});

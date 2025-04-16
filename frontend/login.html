@@ -6,13 +6,19 @@
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-<h1>🔐 Login</h1>
-<form id="loginForm">
-    <input type="text" id="username" placeholder="Benutzername" required />
-    <input type="password" id="password" placeholder="Passwort" required />
-    <button type="submit">Einloggen</button>
-</form>
-<p id="login-message"></p>
+<div class="auth-container">
+    <h1>🔐 Login</h1>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Benutzername" required>
+        <input type="password" id="password" placeholder="Passwort" required>
+        <button type="submit">Einloggen</button>
+    </form>
+    <p id="login-message"></p>
+    <p>Noch kein Konto? <a href="register.html">Hier registrieren</a></p>
+    <div class="auth-back">
+        <a href="index.html">🔙 Zurück zur Startseite</a>
+    </div>
+</div>
 
 <script src="js/login.js"></script>
 </body>

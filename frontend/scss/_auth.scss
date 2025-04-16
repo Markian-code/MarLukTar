@@ -1,0 +1,92 @@
+@use 'variables';
+
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: variables.$background-light;
+  color: variables.$text-color;
+  font-family: 'Segoe UI', sans-serif;
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: variables.$primary-color;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    background-color: white;
+    border-radius: variables.$border-radius;
+    box-shadow: variables.$modal-shadow;
+    min-width: 300px;
+
+    input {
+      padding: 0.6rem;
+      font-size: variables.$font-size;
+      border-radius: variables.$border-radius;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 0.6rem;
+      font-size: variables.$font-size;
+      color: white;
+      background: linear-gradient(90deg, variables.$button-gradient-start, variables.$button-gradient-end);
+      border: none;
+      border-radius: variables.$border-radius;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: darken(variables.$button-gradient-end, 10%);
+      }
+    }
+  }
+
+  p {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+
+    a {
+      color: variables.$accent-color;
+      text-decoration: none;
+      margin-left: 0.5rem;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .auth-back {
+    margin-top: 1.5rem;
+
+    a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: variables.$primary-color;
+      color: white;
+      text-decoration: none;
+      border-radius: variables.$border-radius;
+      transition: background 0.3s;
+
+      &:hover {
+        background: variables.$accent-color;
+      }
+    }
+  }
+
+  #login-message {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+}
