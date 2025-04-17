@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <title>MarLukTar Webshop</title>
@@ -7,6 +7,14 @@
   <link rel="stylesheet" href="css/index.css" />
 </head>
 <body>
+
+<header class="main-header">
+  <h1>🛒 MarLukTar Webshop</h1>
+  <nav class="user-nav" id="user-nav">
+    <!-- Dynamischer Bereich: Login / Register oder Profil / Logout -->
+  </nav>
+</header>
+
 <h1>🛍️ Produktliste</h1>
 
 <!-- Suchfeld -->
@@ -19,9 +27,10 @@
 <div class="cart" id="cart-container">
   <h2><i class="fas fa-shopping-cart"></i> Warenkorb</h2>
   <div id="cart-list"></div>
-  <div class="total"><b>Gesamtsumme:</b> <span id="cart-total">€0.00</span></div>
+  <div class="total">
+    <b>Gesamtsumme:</b> <span id="cart-total">€0.00</span>
+  </div>
 </div>
-
 
 <!-- Modal für Detailansicht -->
 <div id="modal" class="modal hidden">
@@ -34,7 +43,11 @@
   </div>
 </div>
 
-<!-- Hauptscript -->
+<!-- Checkout -->
+<div id="checkout">
+  <button id="checkout-btn">Jetzt bestellen</button>
+</div>
+
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mein Profil</title>
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+<header class="main-header">
+    <h1>👤 Mein Profil</h1>
+    <nav class="user-nav">
+        <a href="index.html">🏠 Startseite</a>
+        <a href="orders.html">🧾 Bestellungen</a>
+        <a href="login.html" onclick="logout()">🔓 Logout</a>
+    </nav>
+</header>
+
+<main class="auth-container">
+    <h1>👤 Persönliche Daten bearbeiten</h1>
+    <form id="profile-form">
+        <input type="text" id="name" placeholder="Name" required />
+        <input type="email" id="email" placeholder="E-Mail" required />
+        <input type="password" id="password" placeholder="Neues Passwort (optional)" />
+        <button type="submit">💾 Aktualisieren</button>
+    </form>
+
+    <p id="profile-message"></p>
+</main>
+
+<script src="js/profile.js"></script>
+</body>
+</html>

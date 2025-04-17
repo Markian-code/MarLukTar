@@ -1,0 +1,39 @@
+@use 'variables' as *;
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: $primary-color;
+  color: $white;
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  .user-nav {
+    a {
+      color: $white;
+      text-decoration: none;
+      margin-left: 1rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      background-color: $button-gradient-start;
+      transition: all 0.3s ease;
+
+      &:hover {
+        filter: brightness(1.1);
+      }
+
+      &.btn-register {
+        background-color: $button-gradient-end;
+
+        &:hover {
+          filter: brightness(1.1);
+        }
+      }
+    }
+  }
+}

@@ -24,6 +24,50 @@ switch ($route) {
         }
         break;
 
+    case 'orders':
+        if ($method === 'GET') {
+            $userId = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+            if ($userId <= 0) {
+                http_response_code(400);
+                echo json_encode(['message' => 'Ungültige Benutzer-ID']);
+                exit;
+            }
+
+            try {
+                // Alle Bestellungen des Benutzers
+                $stmt = $db->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC");
+                $stmt->execute([$userId]);
+                $orders = [];
+
+                while ($order = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    // Hole die zugehörigen Produkte
+                    $itemStmt = $db->prepare("
+                        SELECT oi.product_id, oi.quantity, oi.price, p.name
+                        FROM order_items oi
+                        JOIN products p ON oi.product_id = p.id
+                        WHERE oi.order_id = ?
+                    ");
+                    $itemStmt->execute([$order['id']]);
+                    $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    $orders[] = [
+                        'order_id' => $order['id'],
+                        'user_id' => $order['user_id'],
+                        'total' => $order['total'],
+                        'date' => $order['created_at'] ?? 'Unbekannt',
+                        'items' => $items
+                    ];
+                }
+
+                header('Content-Type: application/json');
+                echo json_encode($orders);
+            } catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode(['message' => 'Fehler beim Abrufen der Bestellungen']);
+            }
+        }
+        break;
+
     case 'product':
         if ($method === 'GET') {
             $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -50,4 +94,3 @@ switch ($route) {
         echo json_encode(["message" => "Invalid route"]);
         break;
 }
-?>
