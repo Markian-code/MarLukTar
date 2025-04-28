@@ -175,3 +175,15 @@
     cursor: pointer;
   }
 }
+
+// Drag-and-Drop Effekte für Produkte
+.product-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.product-item.drag-over {
+  border: 2px dashed $primary-color;
+  background-color: lighten($background-light, 5%);
+}

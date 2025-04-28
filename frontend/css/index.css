@@ -14,27 +14,31 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
 }
 .product:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 .product img {
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: contain;
-  padding: 1rem;
   background: white;
   border-radius: 10px;
+  display: block;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .product h2 {
   font-size: 1.2rem;
   color: #141f43;
-  margin-bottom: 0.5rem;
+  margin: 0.5rem 0;
 }
 .product p {
   font-size: 0.95rem;
-  margin-bottom: 0.5rem;
+  color: #212121;
+  margin: 0.3rem 0;
 }
 .product button {
   background-color: #00ACC1;
@@ -560,6 +564,17 @@
   background-color: #151c1c;
   transition: all 0.3s ease;
   cursor: pointer;
+}
+
+.product-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.product-item.drag-over {
+  border: 2px dashed #141f43;
+  background-color: white;
 }
 
 .search-bar {

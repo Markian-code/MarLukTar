@@ -73,11 +73,12 @@ function updateProductList() {
     products.forEach((product, index) => {
         const div = document.createElement('div');
         div.classList.add('product-item');
+        div.setAttribute('data-id', product.id);
 
         div.innerHTML = `
             <img src="${product.imageUrl ? 'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '') : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${product.name}" />
             <h3>${product.name}</h3>
-            <p><strong>Preis:</strong> €${parseFloat(product.price).toFixed(2)}</p>
+            <p><strong>Preis:</strong> €${product.price}</p>
             <p><strong>Beschreibung:</strong> ${product.description}</p>
             <div class="product-actions">
                 <button class="edit-btn" onclick="editProduct(${index})">✏️ Bearbeiten</button>
@@ -87,6 +88,8 @@ function updateProductList() {
 
         list.appendChild(div);
     });
+
+    enableDragAndDrop();
 }
 
 // Funktion zum Löschen eines Produkts
@@ -171,6 +174,78 @@ function loadProducts() {
             alert('❌ Unerwarteter Fehler beim Laden der Produkte.');
         });
 }
+
+// Drag-and-Drop für Produktliste
+function enableDragAndDrop() {
+    const productItems = document.querySelectorAll('.product-item');
+
+    productItems.forEach((item, index) => {
+        item.setAttribute('draggable', true);
+
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', index);
+            item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragend', (e) => {
+            item.classList.remove('dragging');
+            saveNewProductOrder(); // ➔ Зберігаємо після закінчення перетягування
+        });
+
+        item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            item.classList.add('drag-over');
+        });
+
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const draggedIndex = e.dataTransfer.getData('text/plain');
+            const targetIndex = index;
+
+            if (draggedIndex !== targetIndex.toString()) {
+                const draggedProduct = products[draggedIndex];
+                products.splice(draggedIndex, 1);
+                products.splice(targetIndex, 0, draggedProduct);
+
+                updateProductList();
+            }
+        });
+    });
+}
+
+// Neue Produktreihenfolge speichern
+function saveNewProductOrder() {
+    const productItems = document.querySelectorAll('.product-item');
+    const newOrder = [];
+
+    productItems.forEach((item, index) => {
+        const productId = item.getAttribute('data-id');
+        if (productId) {
+            newOrder.push({ id: productId, position: index });
+        }
+    });
+
+    fetch('/MarLukTar/backend/logic/ProductHandler.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'updateOrder',
+            order: newOrder
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('✅ Neue Reihenfolge gespeichert:', data.message);
+        })
+        .catch(error => {
+            console.error('❌ Fehler beim Speichern der Reihenfolge:', error);
+        });
+}
+
 
 // Startseite öffnen
 function goToHomepage() {
