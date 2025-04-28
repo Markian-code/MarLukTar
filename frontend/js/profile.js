@@ -1,5 +1,6 @@
 // Benutzer-ID aus dem lokalen Speicher abrufen
-const userId = localStorage.getItem('user_id');
+const userId = localStorage.getItem('userId');
+console.log("Profile-Seite UserId:", userId);
 
 // Falls nicht angemeldet, zur Anmeldung umleiten
 if (!userId) {
@@ -39,3 +40,5 @@ function logout() {
     localStorage.clear();
     window.location.href = 'login.html';
 }
+
+

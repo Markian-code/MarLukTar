@@ -18,7 +18,7 @@ if ($method === 'POST') {
 
         if ($userId <= 0) {
             http_response_code(400);
-            echo json_encode(['message' => '❗ Ungültige Benutzer-ID']);
+            echo json_encode(['message' => 'Ungültige Benutzer-ID']);
             exit;
         }
 
@@ -32,11 +32,11 @@ if ($method === 'POST') {
                 echo json_encode($user);
             } else {
                 http_response_code(404);
-                echo json_encode(['message' => '❌ Benutzer nicht gefunden']);
+                echo json_encode(['message' => 'Benutzer nicht gefunden']);
             }
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['message' => '❌ Fehler beim Laden des Profils']);
+            echo json_encode(['message' => 'Fehler beim Laden des Profils']);
         }
 
     // 2. REGISTRIERUNG
@@ -47,7 +47,7 @@ if ($method === 'POST') {
 
         if (!$username || !$email || !$password) {
             http_response_code(400);
-            echo json_encode(['message' => '❗ Bitte alle Felder ausfüllen.']);
+            echo json_encode(['message' => 'Bitte alle Felder ausfüllen.']);
             exit;
         }
 
@@ -57,10 +57,10 @@ if ($method === 'POST') {
             $stmt->execute([$username, $email, $password_hash]);
 
             http_response_code(200);
-            echo json_encode(['message' => '✅ Registrierung erfolgreich!']);
+            echo json_encode(['message' => 'Registrierung erfolgreich!']);
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['message' => '❌ Datenbankfehler: ' . $e->getMessage()]);
+            echo json_encode(['message' => 'Datenbankfehler: ' . $e->getMessage()]);
         }
 
     // 3. LOGIN
@@ -70,7 +70,7 @@ if ($method === 'POST') {
 
         if (!$username || !$password) {
             http_response_code(400);
-            echo json_encode(['message' => '❗ Bitte Benutzername und Passwort eingeben.']);
+            echo json_encode(['message' => 'Bitte Benutzername und Passwort eingeben.']);
             exit;
         }
 
@@ -82,18 +82,19 @@ if ($method === 'POST') {
             if ($user && password_verify($password, $user['password_hash'])) {
                 http_response_code(200);
                 echo json_encode([
-                    'message' => '✅ Login erfolgreich!',
+                    'message' => 'Login erfolgreich!',
                     'user_id' => $user['id'],
                     'name' => $user['username'],
-                    'email' => $user['email']
+                    'email' => $user['email'],
+                    'role' => $user['role']
                 ]);
             } else {
                 http_response_code(401);
-                echo json_encode(['message' => '❌ Benutzername oder Passwort ist falsch.']);
+                echo json_encode(['message' => 'Benutzername oder Passwort ist falsch.']);
             }
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['message' => '❌ Fehler: ' . $e->getMessage()]);
+            echo json_encode(['message' => 'Fehler: ' . $e->getMessage()]);
         }
 
     // 4. PROFIL AKTUALISIEREN
@@ -105,7 +106,7 @@ if ($method === 'POST') {
 
         if ($userId <= 0 || !$name || !$email) {
             http_response_code(400);
-            echo json_encode(['message' => '❗ Ungültige Eingabedaten']);
+            echo json_encode(['message' => 'Ungültige Eingabedaten']);
             exit;
         }
 
@@ -120,20 +121,20 @@ if ($method === 'POST') {
             }
 
             http_response_code(200);
-            echo json_encode(['message' => '✅ Profil erfolgreich aktualisiert!']);
+            echo json_encode(['message' => 'Profil erfolgreich aktualisiert!']);
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['message' => '❌ Fehler beim Speichern des Profils']);
+            echo json_encode(['message' => 'Fehler beim Speichern des Profils']);
         }
 
     // UNBEKANNTE ROUTE
     } else {
         http_response_code(400);
-        echo json_encode(['message' => '❌ Ungültige Route']);
+        echo json_encode(['message' => 'Ungültige Route']);
     }
 
 } else {
     // NUR POST ERLAUBT
     http_response_code(405);
-    echo json_encode(['message' => '❌ Nur POST erlaubt']);
+    echo json_encode(['message' => 'Nur POST erlaubt']);
 }

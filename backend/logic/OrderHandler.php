@@ -13,7 +13,7 @@ if ($method === 'POST') {
 
     if (!$userId || empty($cart)) {
         http_response_code(400);
-        echo json_encode(['message' => '❌ Ungültige Bestellung']);
+        echo json_encode(['message' => 'Ungültige Bestellung']);
         exit;
     }
 
@@ -30,10 +30,10 @@ if ($method === 'POST') {
         }
 
         http_response_code(200);
-        echo json_encode(['message' => '✅ Bestellung erfolgreich aufgegeben!']);
+        echo json_encode(['message' => 'Bestellung erfolgreich aufgegeben!']);
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(['message' => '❌ Fehler beim Speichern: ' . $e->getMessage()]);
+        echo json_encode(['message' => 'Fehler beim Speichern: ' . $e->getMessage()]);
     }
 
 } else {

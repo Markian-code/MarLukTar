@@ -1,60 +1,52 @@
+#product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
 .product {
-  background-color: #FFFFFF;
-  border-radius: 10px;
+  background-color: #f3f3f3;
+  border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s;
 }
 .product:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+}
+.product img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
 }
 .product h2 {
-  font-size: 20px;
+  font-size: 1.2rem;
   color: #141f43;
   margin-bottom: 0.5rem;
 }
 .product p {
-  color: #212121;
-  font-size: 14px;
+  font-size: 0.95rem;
   margin-bottom: 0.5rem;
 }
 .product button {
-  background: linear-gradient(45deg, #151c1c, #333d6a);
-  color: #FFFFFF;
+  background-color: #00ACC1;
+  color: white;
+  padding: 0.5rem 1rem;
   border: none;
-  padding: 0.6rem 1.2rem;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s ease;
+  transition: background-color 0.3s;
 }
 .product button:hover {
-  filter: brightness(1.1);
-}
-
-#search {
-  width: 100%;
-  max-width: 400px;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0 2rem;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
-  background-color: #f3f3f3;
-  color: #212121;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-#search::placeholder {
-  color: #999;
-  font-style: italic;
-}
-#search:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 172, 193, 0.25);
-  background-color: rgb(248.1, 248.1, 248.1);
+  background-color: rgb(0, 126.5492227979, 142);
 }
 
 .cart {
@@ -417,6 +409,179 @@
   margin-top: 1rem;
   font-size: 0.95rem;
   color: #212121;
+}
+
+#admin-area {
+  padding: 2rem;
+}
+#admin-area h1 {
+  font-size: 2.5rem;
+  color: #141f43;
+  margin-bottom: 1rem;
+}
+#admin-area h2 {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  color: #212121;
+}
+#admin-area button {
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#add-product-button {
+  background: linear-gradient(90deg, #151c1c, #333d6a);
+  color: #FFFFFF;
+  font-weight: bold;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+#add-product-button:hover {
+  background: linear-gradient(90deg, black, rgb(34.4331210191, 41.1847133758, 71.5668789809));
+  transform: translateY(-2px);
+}
+
+#add-product-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+#add-product-form input,
+#add-product-form textarea {
+  flex: 1 1 30%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+#add-product-form button {
+  background: linear-gradient(90deg, #151c1c, #333d6a);
+  color: #FFFFFF;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  transition: background 0.3s ease;
+}
+#add-product-form button:hover {
+  filter: brightness(1.1);
+}
+
+#product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+#product-list .product-item {
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#product-list .product-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+#product-list .product-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+#product-list .product-item h3 {
+  margin: 0;
+  color: #141f43;
+  font-size: 1.5rem;
+}
+#product-list .product-item p {
+  margin: 0.5rem 0;
+  color: #212121;
+}
+#product-list .product-item .product-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+}
+#product-list .product-item .product-actions button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+#product-list .product-item .product-actions button.edit-btn {
+  background-color: #ffb400;
+  color: #fff;
+}
+#product-list .product-item .product-actions button.edit-btn:hover {
+  background-color: #cc9000;
+}
+#product-list .product-item .product-actions button.delete-btn {
+  background-color: #e63946;
+  color: #fff;
+}
+#product-list .product-item .product-actions button.delete-btn:hover {
+  background-color: rgb(209.5426008969, 26.4573991031, 40.2152466368);
+}
+
+.admin-nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+}
+.admin-nav button {
+  color: #FFFFFF;
+  text-decoration: none;
+  margin-left: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background-color: #151c1c;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.search-bar {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin: 1rem 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+.search-bar:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+  outline: none;
+  background-color: #fdfdfd;
+}
+.search-bar::placeholder {
+  color: #aaa;
+  font-style: italic;
 }
 
 /*# sourceMappingURL=index.css.map */

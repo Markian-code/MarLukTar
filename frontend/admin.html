@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Adminbereich – MarLukTar</title>
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+
+<header class="main-header">
+    <h1>🛠️ Adminbereich</h1>
+    <nav class="admin-nav">
+        <button id="home-btn">🏠 Startseite</button>
+        <button id="logout-btn">🔓 Logout</button>
+    </nav>
+</header>
+
+<section>
+    <h2>Produkte verwalten</h2>
+
+    <button id="add-product-button">➕ Neues Produkt hinzufügen</button>
+
+    <div id="add-product-form" class="hidden">
+        <input type="text" id="new-product-name" placeholder="Produktname">
+        <input type="number" id="new-product-price" placeholder="Preis">
+        <input type="file" id="new-product-image" accept="image/*">
+        <textarea id="new-product-description" placeholder="Beschreibung"></textarea>
+        <button id="save-product-btn">💾 Speichern</button>
+    </div>
+
+    <div id="product-list"></div>
+</section>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
