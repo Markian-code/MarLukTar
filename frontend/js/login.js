@@ -1,3 +1,5 @@
+console.log("Login.js geladen");
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -18,15 +20,20 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const msg = document.getElementById('login-message');
 
     if (res.ok) {
-        // Einheitliche Benutzerdaten speichern (camelCase)
         localStorage.setItem('userId', data.user_id);
         localStorage.setItem('userName', data.name);
         localStorage.setItem('userEmail', data.email);
+        localStorage.setItem('userRole', data.role);
 
-        // Weiterleitung zur Profilseite
-        window.location.href = 'profile.html';
+        const userRole = localStorage.getItem('userRole');
+        console.log("Angemeldete Rolle:", userRole);
+
+        if (userRole === 'admin') {
+            window.location.href = 'admin.html';
+        } else {
+            window.location.href = 'profile.html';
+        }
     } else {
-        msg.style.color = 'red';
-        msg.textContent = data.message || 'Fehler beim Login.';
+        msg.textContent = "❌ Login fehlgeschlagen.";
     }
 });

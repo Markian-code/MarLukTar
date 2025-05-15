@@ -18,7 +18,7 @@
 <h1>🛍️ Produktliste</h1>
 
 <!-- Suchfeld -->
-<input type="text" id="search" placeholder="Suche Produkt..." />
+<input type="text" id="search" class="search-bar" placeholder="Suche Produkt..." />
 
 <!-- Produktanzeige -->
 <div id="product-list"></div>
@@ -36,6 +36,7 @@
 <div id="modal" class="modal hidden">
   <div class="modal-content">
     <span id="modal-close" class="close">&times;</span>
+    <img id="modal-image" src="/img/default.png" alt="Produktbild" style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
     <h2 id="modal-title"></h2>
     <p id="modal-description"></p>
     <p><b>Preis:</b> €<span id="modal-price"></span></p>

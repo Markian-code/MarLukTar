@@ -1,68 +1,62 @@
-@use 'sass:color';
 @use 'variables' as *;
 
+#product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
 .product {
-  background-color: $white;
-  border-radius: $border-radius;
+  background-color: $background-light;
+  border-radius: 12px;
   box-shadow: $modal-shadow;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: white;
+    border-radius: 10px;
+    display: block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   h2 {
-    font-size: 20px;
+    font-size: 1.2rem;
     color: $primary-color;
-    margin-bottom: 0.5rem;
+    margin: 0.5rem 0;
   }
 
   p {
+    font-size: 0.95rem;
     color: $text-color;
-    font-size: 14px;
-    margin-bottom: 0.5rem;
+    margin: 0.3rem 0;
   }
 
   button {
-    background: linear-gradient(45deg, $button-gradient-start, $button-gradient-end);
-    color: $white;
+    background-color: $accent-color;
+    color: white;
+    padding: 0.5rem 1rem;
     border: none;
-    padding: 0.6rem 1.2rem;
     border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s;
 
     &:hover {
-      filter: brightness(1.1);
+      background-color: darken($accent-color, 10%);
     }
-  }
-}
-
-#search {
-  width: 100%;
-  max-width: 400px;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0 2rem;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
-  background-color: $background-light;
-  color: $text-color;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-
-  &::placeholder {
-    color: #999;
-    font-style: italic;
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 172, 193, 0.25);
-    background-color: color.adjust($background-light, $lightness: 2%);
   }
 }

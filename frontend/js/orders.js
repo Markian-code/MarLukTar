@@ -1,7 +1,7 @@
 // === Bestellungen abrufen und anzeigen ===
 
-// Benutzer-ID manuell gesetzt (Demo-Zweck)
-const userId = 1;
+// Benutzer-ID
+const userId = localStorage.getItem('userId');
 
 // Bestellungen vom Server abrufen und anzeigen
 async function fetchOrders() {

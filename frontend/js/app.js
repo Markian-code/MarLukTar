@@ -4,32 +4,36 @@ let allProducts = [];
 
 // Produkte vom Server laden und nach Suchbegriff filtern
 async function fetchProducts(searchTerm = '') {
-    const res = await fetch('http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=products');
-    allProducts = await res.json();
+    try {
+        const res = await fetch('http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=products');
+        allProducts = await res.json();
 
-    const list = document.getElementById('product-list');
-    list.innerHTML = '';
+        const list = document.getElementById('product-list');
+        list.innerHTML = '';
 
-    // Produktsuche nach Namen
-    const filtered = allProducts.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        const filtered = allProducts.filter(product =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-    filtered.forEach(product => {
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.innerHTML = `
-            <h2 onclick="showDetails('${product.id}')" style="cursor: pointer; color: blue;">
-              ${product.name}
-            </h2>
-            <p>${product.description}</p>
-            <p><b>Preis:</b> €${product.price}</p>
-            <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">
-              In den Warenkorb
-            </button>
-        `;
-        list.appendChild(div);
-    });
+        filtered.forEach(product => {
+            const div = document.createElement('div');
+            div.className = 'product';
+            div.innerHTML = `
+                <img src="${product.imageUrl ? 'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '') : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${product.name}" />
+                <h2 onclick="showDetails('${product.id}')" style="cursor: pointer; color: blue;">
+                    ${product.name}
+                </h2>
+                <p>${product.description}</p>
+                <p><b>Preis:</b> €${product.price}</p>
+                <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">
+                    In den Warenkorb
+                </button>
+            `;
+            list.appendChild(div);
+        });
+    } catch (error) {
+        console.error('Fehler beim Laden der Produkte:', error);
+    }
 }
 
 // Produkt dem Warenkorb hinzufügen
@@ -101,8 +105,16 @@ function showDetails(id) {
     if (product) {
         document.getElementById('modal-title').textContent = product.name;
         document.getElementById('modal-description').textContent = product.description;
-        document.getElementById('modal-price').textContent = product.price;
+        document.getElementById('modal-price').textContent = `€${product.price}`;
         document.getElementById('modal-category').textContent = product.category || 'Keine Angabe';
+
+        const modalImage = document.getElementById('modal-image');
+        if (modalImage) {
+            modalImage.src = product.imageUrl ?
+                'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '')
+                : 'http://localhost/MarLukTar/frontend/img/default.png';
+            modalImage.alt = product.name;
+        }
 
         document.getElementById('modal').classList.remove('hidden');
     }
@@ -174,19 +186,33 @@ async function checkout() {
 // Benutzerstatus prüfen und Navigation aktualisieren
 function updateUserNavigation() {
     const userId = localStorage.getItem('userId');
+    const role = localStorage.getItem('userRole'); // 🆕 Rolle aus dem LocalStorage holen!
     const nav = document.getElementById('user-nav');
 
     if (nav) {
         if (userId) {
-            nav.innerHTML = `
-                <a href="profile.html">Mein Profil</a>
-                <a href="#" onclick="logout()">Logout</a>
-            `;
+            if (role === 'admin') {
+                nav.innerHTML = `
+                    <a href="admin.html">🛠 Adminbereich</a>
+                    <a href="#" id="logout-link">🔓 Logout</a>
+                `;
+            } else {
+                nav.innerHTML = `
+                    <a href="profile.html">👤 Mein Profil</a>
+                    <a href="#" id="logout-link">🔓 Logout</a>
+                `;
+            }
         } else {
             nav.innerHTML = `
                 <a href="login.html" class="btn-login">🔐 Einloggen</a>
                 <a href="register.html" class="btn-register">📝 Registrieren</a>
             `;
+        }
+
+        // Logout-Button richtig verbinden
+        const logoutBtn = document.getElementById('logout-link');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', logout);
         }
     }
 }
@@ -194,7 +220,7 @@ function updateUserNavigation() {
 // Logout-Funktion
 function logout() {
     localStorage.clear();
-    updateUserNavigation(); // Navigation sofort updaten
+    updateUserNavigation();
 }
 
 // Beim Laden der Seite Aktionen ausführen
