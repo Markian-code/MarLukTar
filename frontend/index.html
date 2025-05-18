@@ -46,6 +46,23 @@
 
 <!-- Checkout -->
 <div id="checkout">
+  <label for="payment-method"><b>Zahlungsart:</b></label>
+  <select id="payment-method" required>
+    <option value="">Bitte wählen...</option>
+    <option value="Überweisung">Überweisung</option>
+    <option value="PayPal">PayPal</option>
+    <option value="Gutschein">Gutschein</option>
+  </select>
+
+  <br><br>
+
+  <label for="coupon-code"><b>Gutscheincode:</b></label>
+  <input type="text" id="coupon-code" placeholder="Code eingeben..." />
+  <button type="button" id="apply-coupon-btn">Einlösen</button>
+
+  <div id="discount-info" style="margin-top: 10px; color: green;"></div>
+
+  <br>
   <button id="checkout-btn">Jetzt bestellen</button>
 </div>
 
