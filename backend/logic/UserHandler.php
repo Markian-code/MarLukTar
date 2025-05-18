@@ -7,7 +7,6 @@ require_once __DIR__ . '/../config/dbaccess.php';
 $db = getDBConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
-// POST-Anfragen: zentral für alle Operationen
 if ($method === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
     $route = $data['route'] ?? '';
@@ -41,42 +40,70 @@ if ($method === 'POST') {
 
     // 2. REGISTRIERUNG
     } elseif ($route === 'register') {
-        $username = trim($data['username'] ?? '');
-        $email = trim($data['email'] ?? '');
-        $password = $data['password'] ?? '';
+        $requiredFields = ['salutation', 'firstname', 'lastname', 'address', 'zip', 'city', 'email', 'username', 'password', 'payment'];
 
-        if (!$username || !$email || !$password) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Bitte alle Felder ausfüllen.']);
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                http_response_code(400);
+                echo json_encode(['message' => "Feld '$field' fehlt."]);
+                exit;
+            }
+        }
+
+        $email = trim($data['email']);
+        $username = trim($data['username']);
+
+        // Doppelte Einträge prüfen
+        $stmt = $db->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+        $stmt->execute([$email, $username]);
+
+        if ($stmt->fetch()) {
+            http_response_code(409);
+            echo json_encode(['message' => "Benutzername oder E-Mail existiert bereits."]);
             exit;
         }
 
-        try {
-            $password_hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $db->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $email, $password_hash]);
+        $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
 
-            http_response_code(200);
-            echo json_encode(['message' => 'Registrierung erfolgreich!']);
+        try {
+            $stmt = $db->prepare("INSERT INTO users 
+                (salutation, firstname, lastname, address, zip, city, email, username, password_hash, payment, is_admin, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1)");
+
+            $stmt->execute([
+                $data['salutation'],
+                $data['firstname'],
+                $data['lastname'],
+                $data['address'],
+                $data['zip'],
+                $data['city'],
+                $data['email'],
+                $data['username'],
+                $password_hash,
+                $data['payment']
+            ]);
+
+            http_response_code(201);
+            echo json_encode(['message' => '✅ Registrierung erfolgreich!']);
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(['message' => 'Datenbankfehler: ' . $e->getMessage()]);
+            echo json_encode(['message' => '❌ Datenbankfehler: ' . $e->getMessage()]);
         }
 
-    // 3. LOGIN
+    // 3. LOGIN (mit E-Mail ODER Username)
     } elseif ($route === 'login') {
-        $username = trim($data['username'] ?? '');
+        $usernameOrEmail = trim($data['username'] ?? '');
         $password = $data['password'] ?? '';
 
-        if (!$username || !$password) {
+        if (!$usernameOrEmail || !$password) {
             http_response_code(400);
-            echo json_encode(['message' => 'Bitte Benutzername und Passwort eingeben.']);
+            echo json_encode(['message' => 'Bitte Benutzername oder E-Mail und Passwort eingeben.']);
             exit;
         }
 
         try {
-            $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
-            $stmt->execute([$username]);
+            $stmt = $db->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+            $stmt->execute([$usernameOrEmail, $usernameOrEmail]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user && password_verify($password, $user['password_hash'])) {
@@ -97,7 +124,7 @@ if ($method === 'POST') {
             echo json_encode(['message' => 'Fehler: ' . $e->getMessage()]);
         }
 
-    // 4. PROFIL AKTUALISIEREN
+    // 4. PROFIL AKTUALISIEREN (inkl. Passwort optional)
     } elseif ($route === 'update-profile') {
         $userId = intval($data['user_id'] ?? 0);
         $name = trim($data['name'] ?? '');
@@ -138,3 +165,4 @@ if ($method === 'POST') {
     http_response_code(405);
     echo json_encode(['message' => 'Nur POST erlaubt']);
 }
+// Verbindung schließen
