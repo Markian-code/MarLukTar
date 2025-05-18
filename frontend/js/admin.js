@@ -189,7 +189,7 @@ function enableDragAndDrop() {
 
         item.addEventListener('dragend', (e) => {
             item.classList.remove('dragging');
-            saveNewProductOrder(); // ➔ Зберігаємо після закінчення перетягування
+            saveNewProductOrder();
         });
 
         item.addEventListener('dragover', (e) => {
