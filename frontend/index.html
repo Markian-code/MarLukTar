@@ -3,31 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <title>MarLukTar Webshop</title>
-  <!-- Font Awesome для іконок -->
+  <!-- Font Awesome für Icons -->
   <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   />
-  <!-- Ваш згенерований CSS із SCSS -->
+  <!-- Generiertes CSS aus SCSS -->
   <link rel="stylesheet" href="css/index.css" />
 </head>
 <body>
 
-<!-- ─── HEADER ─────────────────────────────────────────────────────────────── -->
 <header class="main-header">
   <h1 class="main-logo">🛒 MarLukTar Webshop</h1>
 
-  <!-- Кнопка корзини з лічильником -->
+  <!-- Warenkorb-Button mit Zähler -->
   <button id="cart-button" class="btn-cart">
     <i class="fas fa-shopping-cart"></i>
     <span id="cart-count">0</span>
   </button>
 
-  <!-- Навігація користувача -->
+  <!-- Benutzernavigation -->
   <nav id="user-nav" class="user-nav"></nav>
 </header>
 
-<!-- ─── ПОШУК ───────────────────────────────────────────────────────────────── -->
+<!-- Suchleiste -->
 <input
         id="search"
         class="search-bar"
@@ -35,32 +34,32 @@
         placeholder="Suche Produkt..."
 />
 
-<!-- ─── СПИСОК ТОВАРІВ ─────────────────────────────────────────────────────── -->
+<!-- Produktliste -->
 <div id="product-list" class="product-list"></div>
 
-<!-- ─── INLINE-КОРЗИНА ──────────────────────────────────────────────────────── -->
-<aside id="cart-container" class="cart">
+<!-- Inline-Warenkorb als Drop-Zone -->
+<aside id="cart-drop-zone" class="cart-drop-zone">
   <h2><i class="fas fa-shopping-cart"></i> Warenkorb</h2>
   <div id="cart-list" class="cart-list"></div>
   <div class="total">
-    <b>Gesamtsumme:</b>
+    <strong>Gesamtsumme:</strong>
     <span id="cart-total">€0.00</span>
   </div>
 </aside>
 
-<!-- ─── MODAL-КОРЗИНА ───────────────────────────────────────────────────────── -->
+<!-- Modal-Warenkorb -->
 <div id="cart-modal" class="modal hidden">
   <div class="modal-content">
-    <!-- Заголовок модалки -->
+    <!-- Modaltitel und Schließen-Button -->
     <div class="modal-header">
       <h2 class="modal-title">Dein Warenkorb</h2>
       <button class="modal-close" aria-label="Schließen">&times;</button>
     </div>
-    <!-- Тіло модалки із товарами -->
+    <!-- Artikel im Modal -->
     <div class="modal-body">
       <div class="cart-items"></div>
     </div>
-    <!-- Підвал модалки: підсумок + кнопка до каси -->
+    <!-- Modal-Footer: Summe + Checkout -->
     <div class="modal-footer">
       <div class="cart-total-text">
         Gesamt: <span id="cart-total-modal">€0.00</span>
@@ -70,37 +69,36 @@
   </div>
 </div>
 
-<!-- ─── CHECKOUT-БЛОК ───────────────────────────────────────────────────────── -->
+<!-- Checkout-Bereich -->
 <section id="checkout">
-  <!-- Для авторизованих користувачів -->
+  <!-- Zusätzliche Optionen für eingeloggte Nutzer -->
   <div id="extras" style="display: none;">
-    <label for="payment-method"><b>Zahlungsart:</b></label>
+    <label for="payment-method"><strong>Zahlungsart:</strong></label>
     <select id="payment-method">
-      <option value="">Bitte wählen...</option>
+      <option value="">Bitte wählen…</option>
       <option value="Überweisung">Überweisung</option>
       <option value="PayPal">PayPal</option>
     </select>
 
     <br /><br />
 
-    <label for="coupon-code"><b>Gutscheincode:</b></label>
-    <input id="coupon-code" type="text" placeholder="Code eingeben..." />
+    <label for="coupon-code"><strong>Gutscheincode:</strong></label>
+    <input id="coupon-code" type="text" placeholder="Code eingeben…" />
     <button id="apply-coupon-btn" type="button">Einlösen</button>
     <div id="discount-info" class="discount-info"></div>
     <br />
   </div>
 
-  <!-- Для гостей -->
+  <!-- Hinweis für nicht eingeloggte Nutzer -->
   <div id="login-prompt" style="display: none; color: #c00;">
-    Bitte <a href="login.html">einloggen</a>, um Zahlungsart und Gutscheincode
-    auswählen zu können.
+    Bitte <a href="login.html">einloggen</a>, um Zahlung und Gutscheine zu nutzen.
   </div>
 
-  <!-- Кнопка підтвердження замовлення -->
+  <!-- Bestellbestätigung -->
   <button id="checkout-btn" class="checkout-btn">Jetzt bestellen</button>
 </section>
 
-<!-- Підключаємо наш JS -->
+<!-- Unsere JavaScript-Logik -->
 <script src="js/app.js"></script>
 </body>
 </html>
