@@ -2,6 +2,9 @@
 let cart = [];
 let allProducts = [];
 
+let appliedCoupon = null;
+let discountAmount = 0;
+
 // Produkte vom Server laden und nach Suchbegriff filtern
 async function fetchProducts(searchTerm = '') {
     try {
@@ -96,7 +99,8 @@ function updateCartDisplay() {
         sum += item.price * item.quantity;
     });
 
-    cartTotal.textContent = `€${sum.toFixed(2)}`;
+    const final = sum - discountAmount;
+    cartTotal.textContent = `€${final.toFixed(2)}`;
 }
 
 // Detailansicht im Modal anzeigen
@@ -142,10 +146,57 @@ if (checkoutButton) {
     checkoutButton.addEventListener('click', checkout);
 }
 
+async function applyCoupon() {
+    const code = document.getElementById('coupon-code').value.trim();
+    const info = document.getElementById('discount-info');
+
+    if (!code) {
+        alert('Bitte Gutscheincode eingeben.');
+        return;
+    }
+
+    try {
+        const res = await fetch('http://localhost/MarLukTar/backend/logic/CouponHandler.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            appliedCoupon = code;
+            discountAmount = parseFloat(data.discount || 0);
+
+            info.style.color = "green";
+            info.textContent = `✅ Gutschein gültig: -€${discountAmount.toFixed(2)}`;
+
+            updateCartDisplay();
+        } else {
+            info.style.color = "red";
+            info.textContent = `❌ ${data.message}`;
+            appliedCoupon = null;
+            discountAmount = 0;
+            updateCartDisplay();
+        }
+
+    } catch (error) {
+        console.error('Fehler beim Gutschein:', error);
+        alert('Unbekannter Fehler beim Gutschein.');
+    }
+}
+
+
 // Bestellung absenden
 async function checkout() {
     if (cart.length === 0) {
         alert('Ihr Warenkorb ist leer.');
+        return;
+    }
+
+    const paymentMethod = document.getElementById('payment-method').value;
+    if (!paymentMethod) {
+        alert('Bitte wählen Sie eine Zahlungsart aus.');
         return;
     }
 
@@ -164,7 +215,11 @@ async function checkout() {
             body: JSON.stringify({
                 user_id: userId,
                 cart: cart,
-                total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+                total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+                payment_method: paymentMethod,
+                coupon_code: appliedCoupon,
+                discount: discountAmount,
+                final_total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0) - discountAmount
             })
         });
 
@@ -186,7 +241,7 @@ async function checkout() {
 // Benutzerstatus prüfen und Navigation aktualisieren
 function updateUserNavigation() {
     const userId = localStorage.getItem('userId');
-    const role = localStorage.getItem('userRole'); // 🆕 Rolle aus dem LocalStorage holen!
+    const role = localStorage.getItem('userRole'); // Rolle aus dem LocalStorage holen!
     const nav = document.getElementById('user-nav');
 
     if (nav) {
@@ -227,4 +282,9 @@ function logout() {
 window.addEventListener('DOMContentLoaded', () => {
     updateUserNavigation();
     fetchProducts();
+
+    const applyCouponBtn = document.getElementById('apply-coupon-btn');
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', applyCoupon);
+    }
 });

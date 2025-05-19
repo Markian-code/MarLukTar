@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -6,20 +7,35 @@
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
+  
+
 <div class="auth-container">
     <h1>🧑‍💼 Benutzerregistrierung</h1>
     <form id="register-form">
-        <input type="text" name="username" placeholder="Benutzername" required>
+        <select name="salutation" required>
+            <option value="">Anrede wählen</option>
+            <option value="Herr">Herr</option>
+            <option value="Frau">Frau</option>
+        </select>
+
+        <input type="text" name="firstname" placeholder="Vorname" required>
+        <input type="text" name="lastname" placeholder="Nachname" required>
+        <input type="text" name="address" placeholder="Adresse (Straße, Hausnummer)" required>
+        <input type="text" name="zip" placeholder="PLZ" required pattern="\d{4,5}">
+        <input type="text" name="city" placeholder="Ort" required>
+
         <input type="email" name="email" placeholder="E-Mail" required>
-        <input type="password" name="password" placeholder="Passwort" required>
+        <input type="text" name="username" placeholder="Benutzername" required>
+        <input type="password" name="password" placeholder="Passwort" required minlength="6">
+        <input type="password" name="repeat_password" id="repeat_password" placeholder="Passwort wiederholen" required>
+
+        <input type="text" name="payment" placeholder="Zahlungsmethode oder IBAN">
         <button type="submit">Registrieren</button>
     </form>
-    <p>Schon ein Konto? <a href="login.html">Hier einloggen</a></p>
-    <div class="auth-back">
-        <a href="index.html">🔙 Zurück zur Startseite</a>
-    </div>
 </div>
 
-<script src="js/register.js"></script>
+<!-- ✅ GANZ WICHTIG: JS einbinden -->
+<script src="js/register.js" defer></script>
+
 </body>
 </html>

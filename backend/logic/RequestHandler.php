@@ -50,12 +50,17 @@ switch ($route) {
                     $itemStmt->execute([$order['id']]);
                     $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
 
+                    // Sichere Konvertierung von Rabatt (discount) und final_total
                     $orders[] = [
-                        'order_id' => $order['id'],
-                        'user_id' => $order['user_id'],
-                        'total' => $order['total'],
-                        'date' => $order['created_at'] ?? 'Unbekannt',
-                        'items' => $items
+                        'order_id'       => $order['id'],
+                        'user_id'        => $order['user_id'],
+                        'total'          => (float)$order['total'],
+                        'payment_method' => $order['payment_method'] ?? 'Keine Angabe',
+                        'coupon_code'    => $order['coupon_code'] ?? '',
+                        'discount'       => isset($order['discount']) ? (float)$order['discount'] : 0,
+                        'final_total'    => isset($order['final_total']) ? (float)$order['final_total'] : (float)$order['total'],
+                        'date'           => $order['created_at'] ?? 'Unbekannt',
+                        'items'          => $items
                     ];
                 }
 
