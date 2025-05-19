@@ -1,290 +1,264 @@
+// frontend/js/app.js
+
 // Globale Variablen
 let cart = [];
-let allProducts = [];
-
 let appliedCoupon = null;
 let discountAmount = 0;
+let allProducts = [];
 
-// Produkte vom Server laden und nach Suchbegriff filtern
+// DOM-Elemente
+const productList     = document.getElementById('product-list');
+const searchInput     = document.getElementById('search');
+const cartButton      = document.getElementById('cart-button');
+const cartCountEl     = document.getElementById('cart-count');
+const inlineCartList  = document.getElementById('cart-list');
+const inlineCartTotal = document.getElementById('cart-total');
+
+const cartModal       = document.getElementById('cart-modal');
+const modalCloseBtn   = cartModal.querySelector('.modal-close');
+const cartItemsEl     = cartModal.querySelector('.cart-items');
+const modalTotalEl    = document.getElementById('cart-total-modal');
+const modalCheckoutBtn= cartModal.querySelector('.checkout-button');
+
+const extrasSection   = document.getElementById('extras');
+const loginPrompt     = document.getElementById('login-prompt');
+const paymentSelect   = document.getElementById('payment-method');
+const couponInput     = document.getElementById('coupon-code');
+const applyCouponBtn  = document.getElementById('apply-coupon-btn');
+const discountInfo    = document.getElementById('discount-info');
+const checkoutBtn     = document.getElementById('checkout-btn');
+
+const userNav         = document.getElementById('user-nav');
+
+// Funktion zum Laden der Produkte
 async function fetchProducts(searchTerm = '') {
     try {
-        const res = await fetch('http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=products');
+        const res = await fetch(
+            'http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=products'
+        );
         allProducts = await res.json();
 
-        const list = document.getElementById('product-list');
-        list.innerHTML = '';
-
-        const filtered = allProducts.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        productList.innerHTML = '';
+        const filtered = allProducts.filter(p =>
+            p.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-
-        filtered.forEach(product => {
+        filtered.forEach(p => {
             const div = document.createElement('div');
             div.className = 'product';
             div.innerHTML = `
-                <img src="${product.imageUrl ? 'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '') : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${product.name}" />
-                <h2 onclick="showDetails('${product.id}')" style="cursor: pointer; color: blue;">
-                    ${product.name}
-                </h2>
-                <p>${product.description}</p>
-                <p><b>Preis:</b> €${product.price}</p>
-                <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">
-                    In den Warenkorb
-                </button>
-            `;
-            list.appendChild(div);
+        <img src="${
+                p.imageUrl
+                    ? 'http://localhost/MarLukTar/' + p.imageUrl.replace(/^\/+/, '')
+                    : 'http://localhost/MarLukTar/frontend/img/default.png'
+            }" alt="${p.name}" />
+        <h2 class="product-name">${p.name}</h2>
+        <p>${p.description}</p>
+        <p><strong>Preis:</strong> €${p.price}</p>
+        <button class="add-btn"
+                data-id="${p.id}"
+                data-name="${p.name}"
+                data-price="${p.price}">
+          In den Warenkorb
+        </button>
+      `;
+            productList.appendChild(div);
         });
-    } catch (error) {
-        console.error('Fehler beim Laden der Produkte:', error);
+    } catch (err) {
+        console.error('Fehler beim Laden der Produkte:', err);
     }
 }
 
-// Produkt dem Warenkorb hinzufügen
-function addToCart(id, name, price) {
-    const existing = cart.find(item => item.id === id);
+// Delegierung von Klicks auf "In den Warenkorb"
+productList.addEventListener('click', e => {
+    const btn = e.target.closest('.add-btn');
+    if (!btn) return;
+    addToCart(btn.dataset.id, btn.dataset.name, parseFloat(btn.dataset.price));
+});
 
-    if (existing) {
-        existing.quantity += 1;
+// Arbeiten mit dem Warenkorb
+function addToCart(id, name, price) {
+    const idx = cart.findIndex(i => i.id === id);
+    if (idx > -1) {
+        cart[idx].quantity++;
     } else {
         cart.push({ id, name, price, quantity: 1 });
     }
-
-    updateCartDisplay();
+    updateAllDisplays();
 }
 
-// Menge im Warenkorb ändern
-function changeQuantity(id, delta) {
-    const item = cart.find(p => p.id === id);
-    if (!item) return;
-
-    item.quantity += delta;
-
-    if (item.quantity <= 0) {
-        cart = cart.filter(p => p.id !== id);
-    }
-
-    updateCartDisplay();
+function changeQuantity(idx, delta) {
+    if (!cart[idx]) return;
+    cart[idx].quantity += delta;
+    if (cart[idx].quantity < 1) cart.splice(idx, 1);
+    updateAllDisplays();
 }
 
-// Produkt aus dem Warenkorb entfernen
-function removeFromCart(id) {
-    cart = cart.filter(p => p.id !== id);
-    updateCartDisplay();
+function removeFromCart(idx) {
+    cart.splice(idx, 1);
+    updateAllDisplays();
 }
 
-// Warenkorb anzeigen und aktualisieren
-function updateCartDisplay() {
-    const cartList = document.getElementById("cart-list");
-    const cartTotal = document.getElementById("cart-total");
-    cartList.innerHTML = "";
+// Rendering
+function updateAllDisplays() {
+    renderInlineCart();
+    renderCartModal();
+    updateCartCount();
+}
 
+function renderInlineCart() {
+    inlineCartList.innerHTML = '';
     let sum = 0;
-
-    cart.forEach(item => {
-        const itemDiv = document.createElement("div");
-        itemDiv.classList.add("cart-item");
-
-        itemDiv.innerHTML = `
-            <div class="cart-item-info">
-                ${item.name} x${item.quantity} – €${(item.price * item.quantity).toFixed(2)}
-            </div>
-            <div class="cart-item-controls">
-                <button onclick="changeQuantity('${item.id}', 1)">+</button>
-                <button onclick="changeQuantity('${item.id}', -1)">-</button>
-                <button onclick="removeFromCart('${item.id}')">Entfernen</button>
-            </div>
-        `;
-
-        cartList.appendChild(itemDiv);
+    cart.forEach((item, idx) => {
         sum += item.price * item.quantity;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+      <div>${item.name} x${item.quantity} – €${(item.price*item.quantity).toFixed(2)}</div>
+      <div>
+        <button class="qty-btn"   data-idx="${idx}" data-action="+">+</button>
+        <button class="qty-btn"   data-idx="${idx}" data-action="-">−</button>
+        <button class="remove-btn"data-idx="${idx}">✕</button>
+      </div>
+    `;
+        inlineCartList.appendChild(div);
     });
-
-    const final = sum - discountAmount;
-    cartTotal.textContent = `€${final.toFixed(2)}`;
+    inlineCartTotal.textContent = `€${(sum - discountAmount).toFixed(2)}`;
 }
 
-// Detailansicht im Modal anzeigen
-function showDetails(id) {
-    const product = allProducts.find(p => p.id === id);
-    if (product) {
-        document.getElementById('modal-title').textContent = product.name;
-        document.getElementById('modal-description').textContent = product.description;
-        document.getElementById('modal-price').textContent = `€${product.price}`;
-        document.getElementById('modal-category').textContent = product.category || 'Keine Angabe';
+function renderCartModal() {
+    cartItemsEl.innerHTML = '';
+    let sum = 0;
+    cart.forEach((item, idx) => {
+        sum += item.price * item.quantity;
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+      <span>${item.name} x${item.quantity}</span>
+      <div>
+        <button class="qty-btn"   data-idx="${idx}" data-action="+">+</button>
+        <button class="qty-btn"   data-idx="${idx}" data-action="-">−</button>
+        <button class="remove-btn"data-idx="${idx}">✕</button>
+      </div>
+      <span>€${(item.price*item.quantity).toFixed(2)}</span>
+    `;
+        cartItemsEl.appendChild(row);
+    });
+    modalTotalEl.textContent = `€${(sum - discountAmount).toFixed(2)}`;
+}
 
-        const modalImage = document.getElementById('modal-image');
-        if (modalImage) {
-            modalImage.src = product.imageUrl ?
-                'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '')
-                : 'http://localhost/MarLukTar/frontend/img/default.png';
-            modalImage.alt = product.name;
-        }
+function updateCartCount() {
+    cartCountEl.textContent = cart.reduce((a,i)=>a+i.quantity,0);
+}
 
-        document.getElementById('modal').classList.remove('hidden');
+// Delegierung von "+", "−", "✕" in beiden Warenkörben
+inlineCartList.addEventListener('click', handlerCartButtons);
+cartItemsEl    .addEventListener('click', handlerCartButtons);
+
+function handlerCartButtons(e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const idx = +btn.dataset.idx;
+    if (btn.classList.contains('qty-btn')) {
+        changeQuantity(idx, btn.dataset.action==='+'?1:-1);
+    } else if (btn.classList.contains('remove-btn')) {
+        removeFromCart(idx);
     }
 }
 
-// Modal schließen
-const closeBtn = document.getElementById('modal-close');
-if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        document.getElementById('modal').classList.add('hidden');
-    });
-}
+// Öffnen/Schließen des Modals
+cartButton       .addEventListener('click', ()=> cartModal.classList.remove('hidden'));
+modalCloseBtn    .addEventListener('click', ()=> cartModal.classList.add('hidden'));
+modalCheckoutBtn .addEventListener('click', ()=>{
+    cartModal.classList.add('hidden');
+    doCheckout();
+});
 
-// Produktsuche live filtern
-const searchInput = document.getElementById('search');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        fetchProducts(e.target.value);
-    });
-}
-
-// Checkout-Button aktivieren
-const checkoutButton = document.getElementById('checkout-btn');
-if (checkoutButton) {
-    checkoutButton.addEventListener('click', checkout);
-}
-
-async function applyCoupon() {
-    const code = document.getElementById('coupon-code').value.trim();
-    const info = document.getElementById('discount-info');
-
-    if (!code) {
-        alert('Bitte Gutscheincode eingeben.');
-        return;
-    }
-
+// Gutschein
+applyCouponBtn.addEventListener('click', async()=>{
+    const code = couponInput.value.trim();
+    if (!code) return alert('Bitte Gutscheincode eingeben.');
     try {
-        const res = await fetch('http://localhost/MarLukTar/backend/logic/CouponHandler.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
+        const res  = await fetch('http://localhost/MarLukTar/backend/logic/CouponHandler.php',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({code})
         });
-
         const data = await res.json();
-
-        if (res.ok) {
-            appliedCoupon = code;
-            discountAmount = parseFloat(data.discount || 0);
-
-            info.style.color = "green";
-            info.textContent = `✅ Gutschein gültig: -€${discountAmount.toFixed(2)}`;
-
-            updateCartDisplay();
-        } else {
-            info.style.color = "red";
-            info.textContent = `❌ ${data.message}`;
-            appliedCoupon = null;
-            discountAmount = 0;
-            updateCartDisplay();
-        }
-
-    } catch (error) {
-        console.error('Fehler beim Gutschein:', error);
-        alert('Unbekannter Fehler beim Gutschein.');
+        if (!res.ok) throw new Error(data.message);
+        appliedCoupon  = code;
+        discountAmount = parseFloat(data.discount)||0;
+        discountInfo.style.color = 'green';
+        discountInfo.textContent   = `✅ -€${discountAmount.toFixed(2)}`;
+    } catch(err) {
+        appliedCoupon  = null;
+        discountAmount = 0;
+        discountInfo.style.color = 'red';
+        discountInfo.textContent = `❌ ${err.message}`;
     }
-}
+    updateAllDisplays();
+});
 
-
-// Bestellung absenden
-async function checkout() {
-    if (cart.length === 0) {
-        alert('Ihr Warenkorb ist leer.');
-        return;
-    }
-
-    const paymentMethod = document.getElementById('payment-method').value;
-    if (!paymentMethod) {
-        alert('Bitte wählen Sie eine Zahlungsart aus.');
-        return;
-    }
-
+// Checkout
+async function doCheckout(){
+    if (!cart.length) { alert('Ihr Warenkorb ist leer.'); return; }
     const userId = localStorage.getItem('userId');
-    if (!userId) {
-        alert('Bitte zuerst einloggen.');
-        return;
+    if (!userId)    { alert('Bitte zuerst einloggen.'); return; }
+    const pay = paymentSelect.value;
+    if (extrasSection.style.display!=='none' && !pay) {
+        alert('Bitte Zahlungsart wählen.'); return;
     }
-
+    const payload = {
+        user_id: userId,
+        cart,
+        total: cart.reduce((s,i)=>s+i.price*i.quantity,0),
+        payment_method: pay,
+        coupon_code: appliedCoupon,
+        discount: discountAmount,
+        final_total: cart.reduce((s,i)=>s+i.price*i.quantity,0)-discountAmount
+    };
     try {
-        const res = await fetch('http://localhost/MarLukTar/backend/logic/OrderHandler.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                cart: cart,
-                total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
-                payment_method: paymentMethod,
-                coupon_code: appliedCoupon,
-                discount: discountAmount,
-                final_total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0) - discountAmount
-            })
+        const res = await fetch('http://localhost/MarLukTar/backend/logic/OrderHandler.php',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
         });
-
         const data = await res.json();
-
-        if (res.ok) {
-            alert('Bestellung erfolgreich abgeschickt!');
-            cart = [];
-            updateCartDisplay();
-        } else {
-            alert('Fehler bei der Bestellung: ' + data.message);
-        }
-    } catch (error) {
-        console.error('Fehler beim Checkout:', error);
-        alert('Unbekannter Fehler beim Checkout.');
+        if (!res.ok) throw new Error(data.message);
+        alert('Bestellung erfolgreich abgeschickt!');
+        cart = []; appliedCoupon=null; discountAmount=0;
+        discountInfo.textContent='';
+        updateAllDisplays();
+    } catch(e){
+        alert('Fehler bei der Bestellung: '+e);
     }
 }
+checkoutBtn.addEventListener('click', doCheckout);
 
-// Benutzerstatus prüfen und Navigation aktualisieren
-function updateUserNavigation() {
+// live search
+searchInput.addEventListener('input', e=>fetchProducts(e.target.value));
+
+function updateUserNavigation(){
     const userId = localStorage.getItem('userId');
-    const role = localStorage.getItem('userRole'); // Rolle aus dem LocalStorage holen!
-    const nav = document.getElementById('user-nav');
+    const role   = localStorage.getItem('userRole');
+    userNav.innerHTML = userId
+        ? (role==='admin'
+            ? `<a href="admin.html">🛠 Adminbereich</a><a href="#" id="logout-link">🔓 Logout</a>`
+            : `<a href="profile.html">👤 Mein Profil</a><a href="#" id="logout-link">🔓 Logout</a>`)
+        : `<a href="login.html">🔐 Einloggen</a><a href="register.html">📝 Registrieren</a>`;
 
-    if (nav) {
-        if (userId) {
-            if (role === 'admin') {
-                nav.innerHTML = `
-                    <a href="admin.html">🛠 Adminbereich</a>
-                    <a href="#" id="logout-link">🔓 Logout</a>
-                `;
-            } else {
-                nav.innerHTML = `
-                    <a href="profile.html">👤 Mein Profil</a>
-                    <a href="#" id="logout-link">🔓 Logout</a>
-                `;
-            }
-        } else {
-            nav.innerHTML = `
-                <a href="login.html" class="btn-login">🔐 Einloggen</a>
-                <a href="register.html" class="btn-register">📝 Registrieren</a>
-            `;
-        }
+    const lo = document.getElementById('logout-link');
+    if (lo) lo.addEventListener('click', ev=>{ev.preventDefault(); localStorage.clear(); updateUserNavigation();});
 
-        // Logout-Button richtig verbinden
-        const logoutBtn = document.getElementById('logout-link');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', logout);
-        }
-    }
+    toggleExtras();
+}
+function toggleExtras(){
+    const u = localStorage.getItem('userId');
+    extrasSection.style.display = u?'block':'none';
+    loginPrompt  .style.display = u?'none':'block';
 }
 
-// Logout-Funktion
-function logout() {
-    localStorage.clear();
-    updateUserNavigation();
-}
-
-// Beim Laden der Seite Aktionen ausführen
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', ()=>{
     updateUserNavigation();
     fetchProducts();
-
-    const applyCouponBtn = document.getElementById('apply-coupon-btn');
-    if (applyCouponBtn) {
-        applyCouponBtn.addEventListener('click', applyCoupon);
-    }
+    updateAllDisplays();
 });
