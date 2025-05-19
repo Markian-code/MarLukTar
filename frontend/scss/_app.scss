@@ -1,0 +1,45 @@
+// ganz oben in Ihrer _app.scss
+@use 'theme';
+@use 'variables' as *;
+@use 'sass:color';
+
+// Basisstile …
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: $background-color;
+  color: $text-color;
+
+  // Abstand für die fixierte Kopfzeile
+  padding-top: 70px;
+}
+
+// ====================================
+// Kopfzeile / Navigation
+// ====================================
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: $background-color;
+  color: $white;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+
+  .main-logo {
+    font-size: 1.75rem;
+    font-weight: bold;
+  }
+  #navbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}

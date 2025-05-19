@@ -43,7 +43,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         localStorage.setItem('userRole', data.role);
 
         // Speichere Login-Cookie, wenn Checkbox aktiviert ist
-        if (document.getElementById('rememberMe').checked) {
+        if (document.getElementById('remember-me').checked) {
             document.cookie = `remember=${data.user_id}; max-age=604800; path=/`;
         }
 

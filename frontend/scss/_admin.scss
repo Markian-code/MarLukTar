@@ -1,7 +1,10 @@
-// Importiere alle Variablen
+// frontend/scss/_admin.scss
+
+@use 'sass:color';
+@use 'theme';
 @use 'variables' as *;
 
-// Adminbereich Layout
+// Layout des Admin-Bereichs
 #admin-area {
   padding: 2rem;
 
@@ -19,33 +22,41 @@
 
   button {
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: background $transition-fast, transform $transition-fast;
   }
 }
 
-// "Neues Produkt hinzufügen"-Button
+// Button zum Hinzufügen eines neuen Produkts
 #add-product-button {
-  background: linear-gradient(90deg, $button-gradient-start, $button-gradient-end);
+  background: linear-gradient(
+                  90deg,
+                  $button-gradient-start,
+                  $button-gradient-end
+  );
   color: $white;
   font-weight: bold;
   border: none;
   padding: 0.7rem 1.5rem;
   margin-bottom: 2rem;
   border-radius: $border-radius;
-  font-size: 1rem;
+  font-size: $font-size;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   box-shadow: $modal-shadow;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background $transition-fast, transform $transition-fast;
 
   &:hover {
-    background: linear-gradient(90deg, darken($button-gradient-start, 10%), darken($button-gradient-end, 10%));
+    background: linear-gradient(
+                    90deg,
+                    color.adjust($button-gradient-start, $lightness: -10%),
+                    color.adjust($button-gradient-end,   $lightness: -10%)
+    );
     transform: translateY(-2px);
   }
 }
 
-// Produktformular
+// Formular zum Hinzufügen eines Produkts
 #add-product-form {
   display: flex;
   flex-wrap: wrap;
@@ -56,31 +67,35 @@
   textarea {
     flex: 1 1 30%;
     padding: 0.8rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
+    font-size: $font-size;
+    border: 1px solid color.adjust($text-color, $lightness: 50%);
     border-radius: $border-radius;
     background: $white;
     box-shadow: $modal-shadow;
   }
 
   button {
-    background: linear-gradient(90deg, $button-gradient-start, $button-gradient-end);
+    background: linear-gradient(
+                    90deg,
+                    $button-gradient-start,
+                    $button-gradient-end
+    );
     color: $white;
     padding: 0.8rem 2rem;
     border: none;
     border-radius: $border-radius;
-    font-size: 1rem;
+    font-size: $font-size;
     font-weight: bold;
     margin-top: 0.5rem;
-    transition: background 0.3s ease;
+    transition: background $transition-fast;
 
     &:hover {
-      filter: brightness(1.1);
+      background: color.adjust($button-gradient-end, $lightness: -10%);
     }
   }
 }
 
-// Produktliste
+// Liste der Produkte
 #product-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -88,14 +103,14 @@
 
   .product-item {
     background: $background-light;
-    border: 1px solid #ddd;
+    border: 1px solid color.adjust($background-light, $lightness: -10%);
     border-radius: $border-radius;
     padding: 1.5rem;
     box-shadow: $modal-shadow;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform $transition-fast, box-shadow $transition-fast;
 
     img {
       width: 100%;
@@ -133,23 +148,23 @@
         border-radius: $border-radius;
         font-weight: bold;
         font-size: 0.9rem;
-        transition: background 0.3s ease;
+        transition: background $transition-fast;
 
         &.edit-btn {
           background-color: #ffb400;
-          color: #fff;
+          color: $white;
 
           &:hover {
-            background-color: darken(#ffb400, 10%);
+            background-color: color.adjust(#ffb400, $lightness: -10%);
           }
         }
 
         &.delete-btn {
           background-color: #e63946;
-          color: #fff;
+          color: $white;
 
           &:hover {
-            background-color: darken(#e63946, 10%);
+            background-color: color.adjust(#e63946, $lightness: -10%);
           }
         }
       }
@@ -157,7 +172,7 @@
   }
 }
 
-// Admin-Navigationsbuttons (Startseite und Logout)
+// Admin-Navigationsschaltflächen (Startseite und Abmelden)
 .admin-nav {
   display: flex;
   gap: 1rem;
@@ -167,16 +182,20 @@
   button {
     color: $white;
     text-decoration: none;
-    margin-left: 1rem;
     padding: 0.4rem 0.8rem;
-    border-radius: 8px;
+    border-radius: $border-radius;
     background-color: $button-gradient-start;
-    transition: all 0.3s ease;
+    transition: background $transition-fast, transform $transition-fast;
     cursor: pointer;
+
+    &:hover {
+      background-color: color.adjust($button-gradient-start, $lightness: -10%);
+      transform: translateY(-2px);
+    }
   }
 }
 
-// Drag-and-Drop Effekte für Produkte
+// Drag-and-Drop-Effekte für Produkte
 .product-item.dragging {
   opacity: 0.5;
   transform: scale(0.98);
@@ -185,5 +204,5 @@
 
 .product-item.drag-over {
   border: 2px dashed $primary-color;
-  background-color: lighten($background-light, 5%);
+  background-color: color.adjust($background-light, $lightness: 5%);
 }

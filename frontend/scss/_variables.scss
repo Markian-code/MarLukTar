@@ -1,14 +1,24 @@
+// frontend/scss/_variables.scss
+
+@use 'sass:color';
 @use 'theme';
 
-$primary-color: theme.$primary-color;
-$accent-color: theme.$accent-color;
-$background-color: theme.$background-color;
-$text-color: theme.$text-color;
-$white: theme.$white;
+// === Farben aus theme ===
+$primary-color:         theme.$primary-color;
+$accent-color:          theme.$accent-color;
+$background-color:      theme.$background-color;
+$text-color:            theme.$text-color;
+$white:                 theme.$white;
 $button-gradient-start: theme.$button-gradient-start;
-$button-gradient-end: theme.$button-gradient-end;
+$button-gradient-end:   theme.$button-gradient-end;
 
-$border-radius: 10px;
-$font-size: 14px;
-$modal-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-$background-light: #f3f3f3;
+// === Transition aus theme ===
+$transition-fast:       theme.$transition-fast;
+
+// === Utility-Variablen ===
+$border-radius:         0.5rem;
+$font-size:             1rem;
+$modal-shadow:          0 4px 12px rgba(0, 0, 0, 0.3);
+
+// alias für helleren Hintergrund
+$background-light:      color.adjust($background-color, $lightness: 3%);

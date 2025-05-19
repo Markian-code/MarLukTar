@@ -7,7 +7,7 @@ if (!userId) {
     window.location.href = 'login.html';
 }
 
-// 🔄 Profildaten vom Server laden
+// Profildaten vom Server laden
 async function fetchProfile() {
     try {
         const res = await fetch('http://localhost/MarLukTar/backend/logic/UserHandler.php', {
@@ -35,13 +35,13 @@ async function fetchProfile() {
 
 fetchProfile();
 
-// 🔐 Logout-Funktion
+// Logout-Funktion
 function logout() {
     localStorage.clear();
     window.location.href = 'login.html';
 }
 
-// 💾 Profildaten speichern (inkl. optionalem Passwort)
+// Profildaten speichern (inkl. optionalem Passwort)
 document.getElementById('profile-form').addEventListener('submit', async function (e) {
     e.preventDefault();
 
