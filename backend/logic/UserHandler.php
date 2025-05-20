@@ -22,7 +22,7 @@ if ($method === 'POST') {
         }
 
         try {
-            $stmt = $db->prepare("SELECT username AS name, email FROM users WHERE id = ?");
+            $stmt = $db->prepare("SELECT salutation, firstname, lastname, address, zip, city, username AS name, email, payment FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -90,7 +90,7 @@ if ($method === 'POST') {
             echo json_encode(['message' => '❌ Datenbankfehler: ' . $e->getMessage()]);
         }
 
-    // 3. LOGIN (mit E-Mail ODER Username)
+    // 3. LOGIN
     } elseif ($route === 'login') {
         $usernameOrEmail = trim($data['username'] ?? '');
         $password = $data['password'] ?? '';
@@ -124,28 +124,53 @@ if ($method === 'POST') {
             echo json_encode(['message' => 'Fehler: ' . $e->getMessage()]);
         }
 
-    // 4. PROFIL AKTUALISIEREN (inkl. Passwort optional)
+    // 4. PROFIL AKTUALISIEREN
     } elseif ($route === 'update-profile') {
         $userId = intval($data['user_id'] ?? 0);
-        $name = trim($data['name'] ?? '');
-        $email = trim($data['email'] ?? '');
-        $password = trim($data['password'] ?? '');
-
-        if ($userId <= 0 || !$name || !$email) {
+        if ($userId <= 0) {
             http_response_code(400);
-            echo json_encode(['message' => 'Ungültige Eingabedaten']);
+            echo json_encode(['message' => 'Ungültige Benutzer-ID']);
             exit;
         }
 
-        try {
-            if ($password) {
-                $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $db->prepare("UPDATE users SET username = ?, email = ?, password_hash = ? WHERE id = ?");
-                $stmt->execute([$name, $email, $password_hash, $userId]);
-            } else {
-                $stmt = $db->prepare("UPDATE users SET username = ?, email = ? WHERE id = ?");
-                $stmt->execute([$name, $email, $userId]);
+        $updateFields = [
+            'salutation' => $data['salutation'] ?? null,
+            'firstname' => $data['firstname'] ?? null,
+            'lastname' => $data['lastname'] ?? null,
+            'address' => $data['address'] ?? null,
+            'zip' => $data['zip'] ?? null,
+            'city' => $data['city'] ?? null,
+            'email' => $data['email'] ?? null,
+            'username' => $data['name'] ?? null,
+            'payment' => $data['payment'] ?? null
+        ];
+
+        $setClause = [];
+        $params = [];
+
+        foreach ($updateFields as $field => $value) {
+            if ($value !== null && trim($value) !== '') {
+                $setClause[] = "$field = ?";
+                $params[] = trim($value);
             }
+        }
+
+        if (!empty($data['password'])) {
+            $setClause[] = "password_hash = ?";
+            $params[] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        if (empty($setClause)) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Keine Änderungen angegeben']);
+            exit;
+        }
+
+        $params[] = $userId;
+
+        try {
+            $stmt = $db->prepare("UPDATE users SET " . implode(', ', $setClause) . " WHERE id = ?");
+            $stmt->execute($params);
 
             http_response_code(200);
             echo json_encode(['message' => 'Profil erfolgreich aktualisiert!']);
@@ -154,15 +179,13 @@ if ($method === 'POST') {
             echo json_encode(['message' => 'Fehler beim Speichern des Profils']);
         }
 
-    // UNBEKANNTE ROUTE
+    // Ungültige Route
     } else {
         http_response_code(400);
         echo json_encode(['message' => 'Ungültige Route']);
     }
 
 } else {
-    // NUR POST ERLAUBT
     http_response_code(405);
     echo json_encode(['message' => 'Nur POST erlaubt']);
 }
-// Verbindung schließen
