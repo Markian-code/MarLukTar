@@ -1,64 +1,130 @@
 <?php
 require_once __DIR__ . '/../config/dbaccess.php';
+require_once __DIR__ . '/../models/Product.php';
 
 header('Content-Type: application/json');
 
 $db = getDBConnection();
+$product = new Product($db);
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Erst prüfen, ob JSON-Request mit action "updateOrder" kommt
-if ($method === 'POST' && empty($_POST) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
-    $input = json_decode(file_get_contents('php://input'), true);
+// POST-Anfrage (Produkt erstellen / aktualisieren / Reihenfolge)
+if ($method === 'POST') {
+    // Reihenfolge separat behandeln (JSON, nicht FormData)
+    if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
+        $input = json_decode(file_get_contents("php://input"), true);
 
-    if (isset($input['action']) && $input['action'] === 'updateOrder' && isset($input['order'])) {
-        foreach ($input['order'] as $item) {
-            $id = intval($item['id']);
-            $position = intval($item['position']);
-
-            $stmt = $db->prepare("UPDATE products SET sort_order = ? WHERE id = ?");
-            $stmt->execute([$position, $id]);
+        if (isset($input['action']) && $input['action'] === 'updateOrder') {
+            $order = $input['order'] ?? [];
+            $success = $product->updateOrder($order);
+            echo json_encode([
+                'message' => $success
+                    ? '✅ Reihenfolge gespeichert.'
+                    : '❌ Fehler beim Speichern der Reihenfolge.'
+            ]);
+            exit;
         }
-
-        echo json_encode(['message' => '✅ Produktreihenfolge erfolgreich aktualisiert.']);
-        exit;
     }
-}
 
-// Jetzt reguläres Switch
-switch ($method) {
-    case 'POST':
-        $action = $_POST['action'] ?? 'create';
+    // Formulardaten (FormData)
+    if (isset($_POST['action'])) {
+        $action = $_POST['action'];
+        $name = $_POST['name'] ?? '';
+        $price = $_POST['price'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $id = $_POST['id'] ?? null;
 
+        // 🔽 Bild hochladen
+        $imagePath = '';
+        if (!empty($_FILES['image']['name'])) {
+            $uploadDir = realpath(__DIR__ . '/../../uploads') . DIRECTORY_SEPARATOR;
+            $fileName = 'product_' . uniqid() . '_' . basename($_FILES['image']['name']);
+            $targetPath = $uploadDir . $fileName;
+
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                $imagePath = 'uploads/' . $fileName; // Webpfad
+            } else {
+                error_log('❌ Fehler beim move_uploaded_file: ' . print_r($_FILES['image'], true));
+                http_response_code(500);
+                echo json_encode(['message' => '❌ Fehler beim Hochladen des Bildes.']);
+                exit;
+            }
+        }
+
+        // 🟢 Produkt erstellen
         if ($action === 'create') {
-            // Produkt anlegen...
-        } elseif ($action === 'update') {
-            // Produkt aktualisieren...
-        } else {
-            http_response_code(400);
-            echo json_encode(['message' => '❗ Ungültige Aktion']);
+            $success = $product->create($name, $price, $description, $imagePath);
+
+            if (!$success) {
+                error_log("❌ Fehler beim Erstellen des Produkts (create fehlgeschlagen)");
+            }
+
+            echo json_encode([
+                'message' => $success
+                    ? '✅ Produkt erfolgreich erstellt.'
+                    : '❌ Fehler beim Erstellen des Produkts.'
+            ]);
+            exit;
         }
-        break;
 
-    case 'GET':
-        try {
-            $stmt = $db->query("SELECT * FROM products ORDER BY sort_order ASC, id DESC");
-            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // 🟡 Produkt aktualisieren
+        if ($action === 'update' && $id !== null) {
+            if ($imagePath === '' && method_exists($product, 'getById')) {
+                $existing = $product->getById($id);
+                if ($existing && isset($existing['imageUrl'])) {
+                    $imagePath = $existing['imageUrl'];
+                }
+            }
 
-            http_response_code(200);
-            echo json_encode($products);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['message' => '❌ Fehler beim Laden der Produkte: ' . $e->getMessage()]);
+            $success = $product->update($id, $name, $price, $description, $imagePath);
+
+            if (!$success) {
+                error_log("❌ Fehler beim Aktualisieren des Produkts (update fehlgeschlagen)");
+            }
+
+            echo json_encode([
+                'message' => $success
+                    ? '✅ Produkt erfolgreich aktualisiert.'
+                    : '❌ Fehler beim Aktualisieren des Produkts.'
+            ]);
+            exit;
         }
-        break;
+    }
 
-    case 'DELETE':
-        // Produkt löschen...
-        break;
-
-    default:
-        http_response_code(405);
-        echo json_encode(['message' => '❗ Methode nicht erlaubt']);
-        break;
+    echo json_encode(['message' => '❌ Ungültige POST-Daten.']);
+    exit;
 }
-?>
+
+// DELETE-Anfrage
+if ($method === 'DELETE') {
+    $input = json_decode(file_get_contents("php://input"), true);
+    $id = $input['id'] ?? null;
+
+    if ($id) {
+        $success = $product->delete($id);
+        echo json_encode(['message' => $success
+            ? '✅ Produkt erfolgreich gelöscht.'
+            : '❌ Fehler beim Löschen des Produkts.']);
+    } else {
+        echo json_encode(['message' => '❌ Produkt-ID fehlt.']);
+    }
+    exit;
+}
+
+// GET-Anfrage (alle Produkte abrufen)
+if ($method === 'GET') {
+    $stmt = $product->readAll();
+    $products = [];
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $products[] = $row;
+    }
+
+    echo json_encode($products);
+    exit;
+}
+
+// ❌ Methode nicht erlaubt
+http_response_code(405);
+echo json_encode(['message' => '❌ Nicht unterstützte Methode.']);
+exit;

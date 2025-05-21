@@ -1,290 +1,372 @@
-// Globale Variablen
+// --- Globale Variablen ---
 let cart = [];
 let allProducts = [];
-
 let appliedCoupon = null;
 let discountAmount = 0;
 
-// Produkte vom Server laden und nach Suchbegriff filtern
+// --- DOM-Referenzen ---
+const productList     = document.getElementById('product-list');
+const searchInput     = document.getElementById('search');
+
+const cartDropZone    = document.getElementById('cart-drop-zone');
+const cartButton      = document.getElementById('cart-button');
+const cartCountEl     = document.getElementById('cart-count');
+const inlineCartList  = document.getElementById('cart-list');
+const inlineCartTotal = document.getElementById('cart-total');
+
+const cartModal       = document.getElementById('cart-modal');
+const cartCloseBtn    = document.getElementById('cart-close');
+const cartModalList   = document.getElementById('cart-modal-list');
+const cartModalTotal  = document.getElementById('cart-total-modal');
+const cartModalCheckout = document.getElementById('cart-modal-checkout');
+
+const extrasSection   = document.getElementById('extras');
+const loginPrompt     = document.getElementById('login-prompt');
+const paymentSelect   = document.getElementById('payment-method');
+const couponInput     = document.getElementById('coupon-code');
+const applyCouponBtn  = document.getElementById('apply-coupon-btn');
+const discountInfo    = document.getElementById('discount-info');
+const checkoutBtn     = document.getElementById('checkout-btn');
+
+const userNav         = document.getElementById('user-nav');
+
+// Detail-Modal Referenzen
+const detailModal     = document.getElementById('modal');
+const modalCloseBtn   = document.getElementById('modal-close');
+const modalImage      = document.getElementById('modal-image');
+const modalTitle      = document.getElementById('modal-title');
+const modalDescription= document.getElementById('modal-description');
+const modalPrice      = document.getElementById('modal-price');
+const modalCategory   = document.getElementById('modal-category');
+
+// Reviews-Referenzen
+const reviewsSection  = document.getElementById('reviews-section');
+const reviewsListEl   = document.getElementById('reviews-list');
+const reviewFormEl    = document.getElementById('review-form');
+const loginToReviewEl = document.getElementById('login-to-review');
+const ratingSelect    = document.getElementById('review-rating');
+const commentInput    = document.getElementById('review-comment');
+const submitReviewBtn = document.getElementById('submit-review');
+
+// --- Basis-URL für Backend ---
+const BASE_URL = '../backend/logic/';
+
+// --- Hilfsfunktion zum Zählen der Warenkorbmenge ---
+function updateCartCount() {
+    cartCountEl.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+}
+
+// --- 1) Produkte laden und darstellen ---
 async function fetchProducts(searchTerm = '') {
     try {
-        const res = await fetch('http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=products');
-        allProducts = await res.json();
+        const res = await fetch(`${BASE_URL}RequestHandler.php?route=products`);
+        const data = await res.text(); // Zuerst als Text holen
+        try {
+            allProducts = JSON.parse(data); // Dann parsen
+        } catch (jsonErr) {
+            console.error('❌ JSON Fehler:', jsonErr.message, 'Antwort:', data);
+            return;
+        }
 
-        const list = document.getElementById('product-list');
-        list.innerHTML = '';
+        productList.innerHTML = '';
+        allProducts
+            .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            .forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product';
+                card.dataset.id = p.id;
+                card.innerHTML = `
+                    <img src="${p.imageUrl ? 'http://localhost/MarLukTar/' + p.imageUrl : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${p.name}" />
+                    <h2 class="product-name">${p.name}</h2>
+                    <p>${p.description}</p>
+                    <p><strong>Preis:</strong> €${parseFloat(p.price).toFixed(2)}</p>
+                    <button class="add-btn" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
+                        In den Warenkorb
+                    </button>
+                `;
+                card.addEventListener('click', e => {
+                    if (!e.target.classList.contains('add-btn') && !e.target.closest('.add-btn')) {
+                        showProductDetail(p);
+                    }
+                });
+                card.setAttribute('draggable','true');
+                card.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('application/json', JSON.stringify({id:p.id,name:p.name,price:p.price}));
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+                productList.appendChild(card);
+            });
 
-        const filtered = allProducts.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-        filtered.forEach(product => {
-            const div = document.createElement('div');
-            div.className = 'product';
-            div.innerHTML = `
-                <img src="${product.imageUrl ? 'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '') : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${product.name}" />
-                <h2 onclick="showDetails('${product.id}')" style="cursor: pointer; color: blue;">
-                    ${product.name}
-                </h2>
-                <p>${product.description}</p>
-                <p><b>Preis:</b> €${product.price}</p>
-                <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})">
-                    In den Warenkorb
-                </button>
-            `;
-            list.appendChild(div);
-        });
-    } catch (error) {
-        console.error('Fehler beim Laden der Produkte:', error);
+    } catch (err) {
+        console.error('Fehler beim Laden der Produkte:', err);
     }
 }
 
-// Produkt dem Warenkorb hinzufügen
+// --- 2) Detail-Modal anzeigen ---
+function showProductDetail(p) {
+    console.log('🛍️ Produkt geklickt:', p.name);
+    modalImage.src = p.imageUrl ? 'http://localhost/MarLukTar/' + p.imageUrl : 'http://localhost/MarLukTar/frontend/img/default.png';
+    modalImage.alt = p.name;
+    modalTitle.textContent = p.name;
+    modalDescription.textContent = p.description;
+    modalPrice.textContent = parseFloat(p.price).toFixed(2);
+    modalCategory.textContent = p.category || '—';
+    reviewsSection.dataset.productId = p.id;
+    updateReviewSection();
+    detailModal.classList.remove('hidden');
+}
+modalCloseBtn.addEventListener('click', () => detailModal.classList.add('hidden'));
+
+// --- 3) Live-Suche ---
+searchInput.addEventListener('input', e => fetchProducts(e.target.value));
+
+// --- 4) Klick / Drag in den Warenkorb ---
+productList.addEventListener('click', e => {
+    const btn = e.target.closest('.add-btn');
+    if (!btn) return;
+    addToCart(btn.dataset.id, btn.dataset.name, parseFloat(btn.dataset.price));
+});
+function initCartDropZone() {
+    cartDropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        cartDropZone.classList.add('drag-over');
+    });
+    cartDropZone.addEventListener('dragleave', () => {
+        cartDropZone.classList.remove('drag-over');
+    });
+    cartDropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        cartDropZone.classList.remove('drag-over');
+        try {
+            const data = JSON.parse(e.dataTransfer.getData('application/json'));
+            addToCart(data.id, data.name, data.price);
+        } catch {
+            console.warn('Ungültige Drag-Daten');
+        }
+    });
+}
+cartButton.addEventListener('click', ()=> cartModal.classList.remove('hidden'));
+
+// --- 5–6) Warenkorb-Funktionen ---
 function addToCart(id, name, price) {
-    const existing = cart.find(item => item.id === id);
-
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({ id, name, price, quantity: 1 });
-    }
-
-    updateCartDisplay();
+    const idx = cart.findIndex(i => i.id === String(id));
+    if (idx > -1) cart[idx].quantity++;
+    else cart.push({id:String(id),name,price,quantity:1});
+    updateAllDisplays();
+}
+function changeQuantity(idx, delta) {
+    if (!cart[idx]) return;
+    cart[idx].quantity += delta;
+    if (cart[idx].quantity < 1) cart.splice(idx,1);
+    updateAllDisplays();
+}
+function removeFromCart(idx) {
+    cart.splice(idx,1);
+    updateAllDisplays();
 }
 
-// Menge im Warenkorb ändern
-function changeQuantity(id, delta) {
-    const item = cart.find(p => p.id === id);
-    if (!item) return;
-
-    item.quantity += delta;
-
-    if (item.quantity <= 0) {
-        cart = cart.filter(p => p.id !== id);
-    }
-
-    updateCartDisplay();
+// --- 7) Rendering aller Cart-Views ---
+function updateAllDisplays() {
+    renderInlineCart();
+    renderCartModal();
+    updateCartCount();
 }
-
-// Produkt aus dem Warenkorb entfernen
-function removeFromCart(id) {
-    cart = cart.filter(p => p.id !== id);
-    updateCartDisplay();
+function renderInlineCart() {
+    inlineCartList.innerHTML = '';
+    let sum=0;
+    cart.forEach((item,idx)=>{
+        sum += item.price*item.quantity;
+        const div = document.createElement('div');
+        div.className='cart-item';
+        div.innerHTML=`
+            <span>${item.name} x${item.quantity} – €${(item.price*item.quantity).toFixed(2)}</span>
+            <div>
+                <button class="qty-btn" data-idx="${idx}" data-action="+">+</button>
+                <button class="qty-btn" data-idx="${idx}" data-action="-">−</button>
+                <button class="remove-btn" data-idx="${idx}">✕</button>
+            </div>`;
+        inlineCartList.appendChild(div);
+    });
+    inlineCartTotal.textContent = `€${(sum-discountAmount).toFixed(2)}`;
 }
-
-// Warenkorb anzeigen und aktualisieren
-function updateCartDisplay() {
-    const cartList = document.getElementById("cart-list");
-    const cartTotal = document.getElementById("cart-total");
-    cartList.innerHTML = "";
-
+function renderCartModal() {
+    cartModalList.innerHTML = '';
     let sum = 0;
-
-    cart.forEach(item => {
-        const itemDiv = document.createElement("div");
-        itemDiv.classList.add("cart-item");
-
-        itemDiv.innerHTML = `
-            <div class="cart-item-info">
-                ${item.name} x${item.quantity} – €${(item.price * item.quantity).toFixed(2)}
-            </div>
-            <div class="cart-item-controls">
-                <button onclick="changeQuantity('${item.id}', 1)">+</button>
-                <button onclick="changeQuantity('${item.id}', -1)">-</button>
-                <button onclick="removeFromCart('${item.id}')">Entfernen</button>
-            </div>
-        `;
-
-        cartList.appendChild(itemDiv);
+    cart.forEach((item, idx) => {
         sum += item.price * item.quantity;
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+            <span>${item.name} x${item.quantity}</span>
+            <div>
+                <button class="qty-btn" data-idx="${idx}" data-action="+">+</button>
+                <button class="qty-btn" data-idx="${idx}" data-action="-">−</button>
+                <button class="remove-btn" data-idx="${idx}">✕</button>
+            </div>
+            <span>€${(item.price * item.quantity).toFixed(2)}</span>`;
+        cartModalList.appendChild(row);
     });
-
-    const final = sum - discountAmount;
-    cartTotal.textContent = `€${final.toFixed(2)}`;
+    cartModalTotal.textContent = `€${(sum - discountAmount).toFixed(2)}`;
 }
-
-// Detailansicht im Modal anzeigen
-function showDetails(id) {
-    const product = allProducts.find(p => p.id === id);
-    if (product) {
-        document.getElementById('modal-title').textContent = product.name;
-        document.getElementById('modal-description').textContent = product.description;
-        document.getElementById('modal-price').textContent = `€${product.price}`;
-        document.getElementById('modal-category').textContent = product.category || 'Keine Angabe';
-
-        const modalImage = document.getElementById('modal-image');
-        if (modalImage) {
-            modalImage.src = product.imageUrl ?
-                'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '')
-                : 'http://localhost/MarLukTar/frontend/img/default.png';
-            modalImage.alt = product.name;
-        }
-
-        document.getElementById('modal').classList.remove('hidden');
+inlineCartList.addEventListener('click', handlerCartButtons);
+cartModalList.addEventListener('click', handlerCartButtons);
+function handlerCartButtons(e){
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const idx = +btn.dataset.idx;
+    if (btn.classList.contains('qty-btn')) {
+        changeQuantity(idx, btn.dataset.action === '+' ? 1 : -1);
+    } else if (btn.classList.contains('remove-btn')) {
+        removeFromCart(idx);
     }
 }
+cartCloseBtn.addEventListener('click', ()=> cartModal.classList.add('hidden'));
+cartModalCheckout.addEventListener('click', ()=> {
+    cartModal.classList.add('hidden');
+    doCheckout();
+});
 
-// Modal schließen
-const closeBtn = document.getElementById('modal-close');
-if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        document.getElementById('modal').classList.add('hidden');
-    });
-}
-
-// Produktsuche live filtern
-const searchInput = document.getElementById('search');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        fetchProducts(e.target.value);
-    });
-}
-
-// Checkout-Button aktivieren
-const checkoutButton = document.getElementById('checkout-btn');
-if (checkoutButton) {
-    checkoutButton.addEventListener('click', checkout);
-}
-
-async function applyCoupon() {
-    const code = document.getElementById('coupon-code').value.trim();
-    const info = document.getElementById('discount-info');
-
-    if (!code) {
-        alert('Bitte Gutscheincode eingeben.');
-        return;
+// --- 8) Gutschein anwenden ---
+applyCouponBtn.addEventListener('click', async () => {
+    const code = couponInput.value.trim();
+    if (!code) return alert('Bitte Gutscheincode eingeben.');
+    try {
+        const res = await fetch(`${BASE_URL}CouponHandler.php`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({code})
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        appliedCoupon = code;
+        discountAmount = parseFloat(data.discount) || 0;
+        discountInfo.style.color = 'green';
+        discountInfo.textContent = `✅ -€${discountAmount.toFixed(2)}`;
+    } catch (err) {
+        appliedCoupon = null;
+        discountAmount = 0;
+        discountInfo.style.color = 'red';
+        discountInfo.textContent = `❌ ${err.message}`;
     }
+    updateAllDisplays();
+});
+
+// --- 9) Checkout ---
+async function doCheckout(){
+    if (!cart.length) return alert('Ihr Warenkorb ist leer.');
+    const userId = localStorage.getItem('userId');
+    if (!userId) return alert('Bitte zuerst einloggen.');
+    const pay = paymentSelect.value;
+    if (extrasSection.style.display !== 'none' && !pay) return alert('Bitte Zahlungsart wählen.');
+
+    const payload = {
+        action: "create", // ✅ це обов’язково!
+        user_id: userId,
+        cart,
+        total: cart.reduce((s,i)=>s+i.price*i.quantity,0),
+        payment_method: pay,
+        coupon_code: appliedCoupon,
+        discount: discountAmount,
+        final_total: cart.reduce((s,i)=>s+i.price*i.quantity,0) - discountAmount
+    };
 
     try {
-        const res = await fetch('http://localhost/MarLukTar/backend/logic/CouponHandler.php', {
+        const res = await fetch(`${BASE_URL}OrderHandler.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
         });
-
         const data = await res.json();
-
-        if (res.ok) {
-            appliedCoupon = code;
-            discountAmount = parseFloat(data.discount || 0);
-
-            info.style.color = "green";
-            info.textContent = `✅ Gutschein gültig: -€${discountAmount.toFixed(2)}`;
-
-            updateCartDisplay();
-        } else {
-            info.style.color = "red";
-            info.textContent = `❌ ${data.message}`;
-            appliedCoupon = null;
-            discountAmount = 0;
-            updateCartDisplay();
-        }
-
-    } catch (error) {
-        console.error('Fehler beim Gutschein:', error);
-        alert('Unbekannter Fehler beim Gutschein.');
+        if (!res.ok) throw new Error(data.message);
+        alert('🛒 Bestellung erfolgreich abgeschickt!');
+        cart = []; appliedCoupon = null; discountAmount = 0; discountInfo.textContent = '';
+        updateAllDisplays();
+    } catch (e) {
+        alert('Fehler bei der Bestellung: ❌ ' + e.message);
     }
 }
 
+checkoutBtn.addEventListener('click', doCheckout);
 
-// Bestellung absenden
-async function checkout() {
-    if (cart.length === 0) {
-        alert('Ihr Warenkorb ist leer.');
-        return;
-    }
-
-    const paymentMethod = document.getElementById('payment-method').value;
-    if (!paymentMethod) {
-        alert('Bitte wählen Sie eine Zahlungsart aus.');
-        return;
-    }
-
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-        alert('Bitte zuerst einloggen.');
-        return;
-    }
-
+// --- 10) Reviews laden & senden ---
+async function loadReviews(){
+    const pid = reviewsSection.dataset.productId;
+    if (!pid) return;
     try {
-        const res = await fetch('http://localhost/MarLukTar/backend/logic/OrderHandler.php', {
+        const res = await fetch(`${BASE_URL}ReviewHandler.php?product_id=${pid}`);
+        const reviews = await res.json();
+        reviewsListEl.innerHTML = reviews.map(r => `
+            <div class="review">
+                <div class="review-header">
+                    <span class="reviewer">${r.username}</span>
+                    <span class="rating">${'★'.repeat(r.rating) + '☆'.repeat(5 - r.rating)}</span>
+                    <span class="date">${new Date(r.created_at).toLocaleDateString()}</span>
+                </div>
+                <div class="review-body">${r.comment}</div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Fehler beim Laden der Reviews:', err);
+    }
+}
+
+function updateReviewSection(){
+    const uid = localStorage.getItem('userId');
+    reviewFormEl.style.display = uid ? 'block' : 'none';
+    loginToReviewEl.style.display = uid ? 'none' : 'block';
+    loadReviews();
+}
+submitReviewBtn.addEventListener('click', async () => {
+    const pid = reviewsSection.dataset.productId;
+    const uid = localStorage.getItem('userId');
+    const rating = parseInt(ratingSelect.value, 10);
+    const comment = commentInput.value.trim();
+    if (!pid || !uid || !rating || !comment) return alert('Bitte alle Felder ausfüllen.');
+    try {
+        const res = await fetch(`${BASE_URL}ReviewHandler.php`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                cart: cart,
-                total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
-                payment_method: paymentMethod,
-                coupon_code: appliedCoupon,
-                discount: discountAmount,
-                final_total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0) - discountAmount
-            })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({product_id: pid, user_id: uid, rating, comment})
         });
-
-        const data = await res.json();
-
-        if (res.ok) {
-            alert('Bestellung erfolgreich abgeschickt!');
-            cart = [];
-            updateCartDisplay();
-        } else {
-            alert('Fehler bei der Bestellung: ' + data.message);
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message);
         }
-    } catch (error) {
-        console.error('Fehler beim Checkout:', error);
-        alert('Unbekannter Fehler beim Checkout.');
+        commentInput.value = '';
+        loadReviews();
+    } catch (err) {
+        alert('Fehler beim Speichern der Bewertung: ' + err.message);
     }
+});
+
+// --- 11) User-Navi & Extras ---
+function updateUserNavigation(){
+    const uid = localStorage.getItem('userId');
+    const role = localStorage.getItem('userRole');
+    userNav.innerHTML = uid
+        ? (role === 'admin'
+            ? `<a href="admin.html">🛠 Adminbereich</a><a href="#" id="logout-link">🔓 Logout</a>`
+            : `<a href="profile.html">👤 Mein Profil</a><a href="#" id="logout-link">🔓 Logout</a>`)
+        : `<a href="login.html">🔐 Einloggen</a><a href="register.html">📝 Registrieren</a>`;
+    const lo = document.getElementById('logout-link');
+    if (lo) lo.addEventListener('click', ev => {
+        ev.preventDefault();
+        localStorage.clear();
+        updateUserNavigation();
+        updateReviewSection();
+    });
+    toggleExtras();
+}
+function toggleExtras(){
+    const u = localStorage.getItem('userId');
+    extrasSection.style.display = u ? 'block' : 'none';
+    loginPrompt.style.display   = u ? 'none' : 'block';
 }
 
-// Benutzerstatus prüfen und Navigation aktualisieren
-function updateUserNavigation() {
-    const userId = localStorage.getItem('userId');
-    const role = localStorage.getItem('userRole'); // Rolle aus dem LocalStorage holen!
-    const nav = document.getElementById('user-nav');
-
-    if (nav) {
-        if (userId) {
-            if (role === 'admin') {
-                nav.innerHTML = `
-                    <a href="admin.html">🛠 Adminbereich</a>
-                    <a href="#" id="logout-link">🔓 Logout</a>
-                `;
-            } else {
-                nav.innerHTML = `
-                    <a href="profile.html">👤 Mein Profil</a>
-                    <a href="#" id="logout-link">🔓 Logout</a>
-                `;
-            }
-        } else {
-            nav.innerHTML = `
-                <a href="login.html" class="btn-login">🔐 Einloggen</a>
-                <a href="register.html" class="btn-register">📝 Registrieren</a>
-            `;
-        }
-
-        // Logout-Button richtig verbinden
-        const logoutBtn = document.getElementById('logout-link');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', logout);
-        }
-    }
-}
-
-// Logout-Funktion
-function logout() {
-    localStorage.clear();
-    updateUserNavigation();
-}
-
-// Beim Laden der Seite Aktionen ausführen
+// --- 12) Initialisierung ---
 window.addEventListener('DOMContentLoaded', () => {
+    initCartDropZone();
     updateUserNavigation();
     fetchProducts();
-
-    const applyCouponBtn = document.getElementById('apply-coupon-btn');
-    if (applyCouponBtn) {
-        applyCouponBtn.addEventListener('click', applyCoupon);
-    }
+    updateAllDisplays();
 });

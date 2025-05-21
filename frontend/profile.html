@@ -18,14 +18,22 @@
 <main class="auth-container">
     <h1>👤 Persönliche Daten bearbeiten</h1>
     <form id="profile-form">
-        <input type="text" id="name" placeholder="Name" required />
-        <input type="email" id="email" placeholder="E-Mail" required />
+        <input type="text" id="salutation" placeholder="Neue Anrede (z. B. Herr/Frau)" />
+        <input type="text" id="firstname" placeholder="Neuer Vorname" />
+        <input type="text" id="lastname" placeholder="Neuer Nachname" />
+        <input type="text" id="address" placeholder="Neue Adresse (Straße, Hausnummer)" />
+        <input type="text" id="zip" placeholder="Neue PLZ" pattern="\d{4,5}" />
+        <input type="text" id="city" placeholder="Neuer Ort" />
+        <input type="email" id="email" placeholder="Neue E-Mail"  />
+        <input type="text" id="name" placeholder="Neuer Benutzername"  />
+        <input type="text" id="payment" placeholder="Neue Zahlungsmethode oder IBAN" />
         <input type="password" id="password" placeholder="Neues Passwort (optional)" />
-        <button type="submit">💾 Aktualisieren</button>
+        <button id="save-profile-btn" type="submit">💾 Aktualisieren</button>
     </form>
 
     <p id="profile-message"></p>
 </main>
+
 <script src="js/router.js"></script>
 <script src="js/profile.js"></script>
 </body>

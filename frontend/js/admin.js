@@ -1,18 +1,54 @@
-// Initialisierung der Produktliste und Bearbeitungsindex
+// ─── Globale Variablen ───────────────────────────────
 let products = [];
 let editIndex = null;
 
-// Event-Listener einrichten
-window.onload = function() {
-    loadProducts();
+// ─── Funktionen ──────────────────────────────────────
 
-    document.getElementById('add-product-button').addEventListener('click', showAddProductForm);
-    document.getElementById('save-product-btn').addEventListener('click', addProduct);
-    document.getElementById('home-btn').addEventListener('click', goToHomepage);
-    document.getElementById('logout-btn').addEventListener('click', logout);
-};
+// Produktformular anzeigen
+function showAddProductForm() {
+    editIndex = null;
+    document.getElementById('add-product-form').classList.remove('hidden');
+}
 
-// Funktion zum Hinzufügen oder Bearbeiten eines Produkts
+// Produkte laden
+function loadProducts() {
+    fetch('/MarLukTar/backend/logic/ProductHandler.php')
+        .then(res => res.json())
+        .then(data => {
+            products = data;
+            updateProductList();
+        })
+        .catch(err => {
+            console.error('❌ Fehler beim Laden der Produkte:', err);
+        });
+}
+
+// Produktliste anzeigen
+function updateProductList() {
+    const list = document.getElementById('product-list');
+    list.innerHTML = '';
+
+    products.forEach((product, index) => {
+        const div = document.createElement('div');
+        div.classList.add('product-item');
+        div.setAttribute('data-id', product.id);
+        div.innerHTML = `
+            <img src="${product.imageUrl ? 'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '') : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${product.name}" />
+            <h3>${product.name}</h3>
+            <p><strong>Preis:</strong> €${product.price}</p>
+            <p><strong>Beschreibung:</strong> ${product.description}</p>
+            <div class="product-actions">
+                <button class="edit-btn" onclick="editProduct(${index})">✏️ Bearbeiten</button>
+                <button class="delete-btn" onclick="deleteProduct(${index})">🗑️ Löschen</button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+
+    enableDragAndDrop();
+}
+
+// Produkt hinzufügen oder bearbeiten
 function addProduct() {
     const name = document.getElementById('new-product-name').value.trim();
     const price = document.getElementById('new-product-price').value.trim();
@@ -28,10 +64,7 @@ function addProduct() {
     formData.append('name', name);
     formData.append('price', price);
     formData.append('description', description);
-
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
+    if (imageFile) formData.append('image', imageFile);
 
     if (editIndex !== null && products[editIndex]?.id) {
         formData.append('id', products[editIndex].id);
@@ -44,100 +77,48 @@ function addProduct() {
         method: 'POST',
         body: formData
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Netzwerkfehler');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data.message);
-            if (data.message.includes('erfolgreich')) {
-                loadProducts();
-                clearForm();
-            } else {
-                alert('❌ Fehler beim Speichern des Produkts.');
+        .then(response => response.text()) // 👈 читаємо як текст
+        .then(text => {
+            try {
+                const data = JSON.parse(text); // 👈 парсимо вручну
+                if (data.message.includes('erfolgreich')) {
+                    loadProducts();
+                    clearForm();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                console.error('❌ Fehler beim Parsen der Antwort:', text);
+                alert('❌ Ungültige Serverantwort.');
             }
         })
         .catch(error => {
-            console.error('Fehler beim Speichern:', error);
-            alert('❌ Unerwarteter Fehler beim Speichern.');
+            console.error('❌ Netzwerkfehler:', error);
+            alert('❌ Netzwerkfehler beim Speichern.');
         });
 }
 
-// Funktion zum Aktualisieren der Produktliste
-function updateProductList() {
-    const list = document.getElementById('product-list');
-    list.innerHTML = '';
-
-    products.forEach((product, index) => {
-        const div = document.createElement('div');
-        div.classList.add('product-item');
-        div.setAttribute('data-id', product.id);
-
-        div.innerHTML = `
-            <img src="${product.imageUrl ? 'http://localhost/MarLukTar/' + product.imageUrl.replace(/^\/+/, '') : 'http://localhost/MarLukTar/frontend/img/default.png'}" alt="${product.name}" />
-            <h3>${product.name}</h3>
-            <p><strong>Preis:</strong> €${product.price}</p>
-            <p><strong>Beschreibung:</strong> ${product.description}</p>
-            <div class="product-actions">
-                <button class="edit-btn" onclick="editProduct(${index})">✏️ Bearbeiten</button>
-                <button class="delete-btn" onclick="deleteProduct(${index})">🗑️ Löschen</button>
-            </div>
-        `;
-
-        list.appendChild(div);
-    });
-
-    enableDragAndDrop();
-}
-
-// Funktion zum Löschen eines Produkts
+// Produkt löschen
 function deleteProduct(index) {
     const product = products[index];
+    if (!product?.id) return;
 
-    if (!product?.id) {
-        alert("❗ Produkt hat keine ID (vielleicht nur lokal?)");
-        return;
-    }
-
-    if (confirm(`Möchtest du das Produkt "${product.name}" wirklich löschen?`)) {
+    if (confirm(`Möchtest du das Produkt "${product.name}" löschen?`)) {
         fetch('/MarLukTar/backend/logic/ProductHandler.php', {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: product.id })
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Netzwerkfehler beim Löschen');
-                }
-                return response.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                console.log(data.message);
-                if (data.message.includes('erfolgreich')) {
-                    products.splice(index, 1);
-                    updateProductList();
-                } else {
-                    alert('❌ Fehler beim Löschen des Produkts.');
-                }
+                alert(data.message);
+                loadProducts();
             })
-            .catch(error => {
-                console.error('Fehler beim Löschen:', error);
-                alert('❌ Unerwarteter Fehler beim Löschen.');
-            });
+            .catch(err => alert("❌ Fehler beim Löschen: " + err));
     }
 }
 
-// Formular anzeigen
-function showAddProductForm() {
-    editIndex = null;
-    document.getElementById('add-product-form').classList.remove('hidden');
-}
-
-// Produkt zum Bearbeiten auswählen
+// Produkt bearbeiten
 function editProduct(index) {
     const product = products[index];
     document.getElementById('new-product-name').value = product.name;
@@ -156,103 +137,143 @@ function clearForm() {
     document.getElementById('add-product-form').classList.add('hidden');
 }
 
-// Produkte vom Server laden
-function loadProducts() {
-    fetch('/MarLukTar/backend/logic/ProductHandler.php')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Netzwerkfehler beim Laden der Produkte');
-            }
-            return response.json();
-        })
-        .then(data => {
-            products = data;
-            updateProductList();
-        })
-        .catch(error => {
-            console.error('Fehler beim Laden der Produkte:', error);
-            alert('❌ Unerwarteter Fehler beim Laden der Produkte.');
-        });
-}
-
-// Drag-and-Drop für Produktliste
+// Drag & Drop aktivieren
 function enableDragAndDrop() {
     const productItems = document.querySelectorAll('.product-item');
-
     productItems.forEach((item, index) => {
         item.setAttribute('draggable', true);
 
-        item.addEventListener('dragstart', (e) => {
+        item.addEventListener('dragstart', e => {
             e.dataTransfer.setData('text/plain', index);
             item.classList.add('dragging');
         });
-
-        item.addEventListener('dragend', (e) => {
-            item.classList.remove('dragging');
-            saveNewProductOrder();
-        });
-
-        item.addEventListener('dragover', (e) => {
+        item.addEventListener('dragend', () => item.classList.remove('dragging'));
+        item.addEventListener('dragover', e => {
             e.preventDefault();
             item.classList.add('drag-over');
         });
-
-        item.addEventListener('dragleave', () => {
-            item.classList.remove('drag-over');
-        });
-
-        item.addEventListener('drop', (e) => {
+        item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+        item.addEventListener('drop', e => {
             e.preventDefault();
             const draggedIndex = e.dataTransfer.getData('text/plain');
-            const targetIndex = index;
-
-            if (draggedIndex !== targetIndex.toString()) {
-                const draggedProduct = products[draggedIndex];
-                products.splice(draggedIndex, 1);
-                products.splice(targetIndex, 0, draggedProduct);
-
-                updateProductList();
-            }
+            const draggedProduct = products[draggedIndex];
+            products.splice(draggedIndex, 1);
+            products.splice(index, 0, draggedProduct);
+            updateProductList();
         });
     });
 }
 
-// Neue Produktreihenfolge speichern
+// Neue Reihenfolge speichern (optional)
 function saveNewProductOrder() {
-    const productItems = document.querySelectorAll('.product-item');
-    const newOrder = [];
-
-    productItems.forEach((item, index) => {
-        const productId = item.getAttribute('data-id');
-        if (productId) {
-            newOrder.push({ id: productId, position: index });
-        }
+    const order = [];
+    document.querySelectorAll('.product-item').forEach((item, index) => {
+        order.push({ id: item.getAttribute('data-id'), position: index });
     });
 
     fetch('/MarLukTar/backend/logic/ProductHandler.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: 'updateOrder',
-            order: newOrder
-        })
+        body: JSON.stringify({ action: 'updateOrder', order })
     })
-        .then(response => response.json())
-        .then(data => {
-            console.log('✅ Neue Reihenfolge gespeichert:', data.message);
-        })
-        .catch(error => {
-            console.error('❌ Fehler beim Speichern der Reihenfolge:', error);
+        .then(res => res.json())
+        .then(data => console.log("🔃 Reihenfolge gespeichert:", data.message))
+        .catch(err => console.error("❌ Fehler beim Speichern:", err));
+}
+
+// ─── Kundenverwaltung ──────────────────────────────
+
+function loadCustomers() {
+    fetch("../backend/logic/UserHandler.php?action=all")
+        .then(res => res.json())
+        .then(users => {
+            const container = document.getElementById("customer-list");
+            container.innerHTML = "";
+            users.forEach(user => {
+                const userCard = document.createElement("div");
+                userCard.className = "user-card";
+                userCard.innerHTML = `
+                    <h4>${user.firstname ?? ''} ${user.lastname ?? ''} (${user.email})</h4>
+                    <p>Status: <strong>${user.active == 1 ? "Aktiv" : "Inaktiv"}</strong></p>
+                    <button onclick="umschaltenStatus(${user.id})">
+                        ${user.active == 1 ? "Deaktivieren" : "Aktivieren"}
+                    </button>
+                    <button onclick="zeigeBestellungen(${user.id})">📦 Bestellungen</button>
+                    <div id="orders-${user.id}" class="orders-list"></div>
+                `;
+                container.appendChild(userCard);
+            });
         });
 }
 
+function umschaltenStatus(userId) {
+    fetch("../backend/logic/UserHandler.php?action=toggle&id=" + userId)
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            loadCustomers();
+        });
+}
 
-// Startseite öffnen
+function zeigeBestellungen(userId) {
+    const zielElement = document.getElementById(`orders-${userId}`);
+    fetch(`../backend/logic/OrderHandler.php?action=listOrdersByUser&id=${userId}`)
+        .then(res => res.json())
+        .then(bestellungen => {
+            zielElement.innerHTML = "<h4>📦 Bestellungen des Kunden:</h4>";
+            bestellungen.forEach(b => {
+                const div = document.createElement("div");
+                div.classList.add("bestellungs-eintrag");
+                div.innerHTML = `
+                    <p><strong>ID:</strong> ${b.id}</p>
+                    <p><strong>Datum:</strong> ${b.date}</p>
+                    <p><strong>Summe:</strong> €${b.total}</p>
+                    <p><strong>Status:</strong></p>
+                `;
+                const select = document.createElement("select");
+                ['offen', 'bezahlt', 'versendet', 'storniert'].forEach(status => {
+                    const option = document.createElement("option");
+                    option.value = status;
+                    option.textContent = status;
+                    if (b.status === status) option.selected = true;
+                    select.appendChild(option);
+                });
+                const button = document.createElement("button");
+                button.textContent = "💾 Speichern";
+                button.onclick = () => bestellungSpeichern(b.id, select.value);
+                div.appendChild(select);
+                div.appendChild(button);
+                zielElement.appendChild(div);
+            });
+        });
+}
+
+function bestellungSpeichern(id, status) {
+    fetch("../backend/logic/OrderHandler.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updateStatus", id, status })
+    })
+        .then(res => res.json())
+        .then(data => alert(data.message || "✅ Bestellung aktualisiert."))
+        .catch(err => alert("❌ Fehler: " + err));
+}
+
+// ─── Event Listener Setup ───────────────────────────
+window.onload = function () {
+    loadProducts();
+
+    document.getElementById('add-product-button')?.addEventListener('click', showAddProductForm);
+    document.getElementById('save-product-btn')?.addEventListener('click', addProduct);
+    document.getElementById('home-btn')?.addEventListener('click', goToHomepage);
+    document.getElementById('logout-btn')?.addEventListener('click', logout);
+    document.getElementById('load-customers-btn')?.addEventListener('click', loadCustomers);
+};
+
 function goToHomepage() {
     window.location.href = 'index.html';
 }
 
-// Logout-Funktion
 function logout() {
     localStorage.clear();
     window.location.href = 'login.html';

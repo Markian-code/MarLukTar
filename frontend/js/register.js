@@ -1,8 +1,19 @@
+console.log("✅ JavaScript geladen");
+
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const form = e.target;
     const formData = new FormData(form);
+
+    const password = formData.get('password');
+    const repeatPassword = formData.get('repeat_password');
+
+    // Passwörter vergleichen
+    if (password !== repeatPassword) {
+        alert('❌ Die Passwörter stimmen nicht überein!');
+        return;
+    }
 
     try {
         const res = await fetch('http://localhost/MarLukTar/backend/logic/UserHandler.php', {
@@ -12,15 +23,21 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             },
             body: JSON.stringify({
                 route: 'register',
-                username: formData.get('username'),
+                salutation: formData.get('salutation'),
+                firstname: formData.get('firstname'), 
+                lastname: formData.get('lastname'),
+                address: formData.get('address'),
+                zip: formData.get('zip'),
+                city: formData.get('city'),
                 email: formData.get('email'),
-                password: formData.get('password')
+                username: formData.get('username'),
+                password: formData.get('password'),
+                payment: formData.get('payment')
             })
         });
 
         const contentType = res.headers.get('Content-Type');
 
-        // Debug: Show raw response if not JSON
         if (!contentType || !contentType.includes('application/json')) {
             const text = await res.text();
             console.error('❌ Response is not JSON:', text);

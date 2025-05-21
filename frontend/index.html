@@ -1,71 +1,133 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>MarLukTar Webshop</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Font Awesome für Icons -->
+  <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  <!-- Generiertes CSS aus SCSS -->
   <link rel="stylesheet" href="css/index.css" />
 </head>
 <body>
 
+<!-- HEADER -->
 <header class="main-header">
-  <h1>🛒 MarLukTar Webshop</h1>
-  <nav class="user-nav" id="user-nav">
-    <!-- Dynamischer Bereich: Login / Register oder Profil / Logout -->
-  </nav>
+  <h1 class="main-logo">🛒 MarLukTar Webshop</h1>
+  <button id="cart-button" class="btn-cart">
+    <i class="fas fa-shopping-cart"></i>
+    <span id="cart-count">0</span>
+  </button>
+  <nav id="user-nav" class="user-nav"></nav>
 </header>
 
-<h1>🛍️ Produktliste</h1>
+<!-- SUCHE -->
+<input
+        id="search"
+        class="search-bar"
+        type="text"
+        placeholder="Suche Produkt..."
+/>
 
-<!-- Suchfeld -->
-<input type="text" id="search" class="search-bar" placeholder="Suche Produkt..." />
+<!-- PRODUKTLISTE -->
+<div id="product-list" class="product-list"></div>
 
-<!-- Produktanzeige -->
-<div id="product-list"></div>
+<!-- DETAIL-MODAL mit Reviews -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <button id="modal-close" class="close">&times;</button>
+    <img id="modal-image" src="" alt="" class="modal-img" />
+    <h2 id="modal-title"></h2>
+    <p id="modal-description"></p>
+    <p><strong>Preis:</strong> <span id="modal-price"></span> €</p>
+    <p><strong>Kategorie:</strong> <span id="modal-category"></span></p>
 
-<!-- Warenkorb -->
-<div class="cart" id="cart-container">
+    <!-- REVIEWS -->
+    <section
+            id="reviews-section"
+            class="reviews-section"
+            data-product-id=""
+    >
+      <h3>Bewertungen</h3>
+      <div id="reviews-list">
+        <!-- JS fügt hier bestehende Reviews ein -->
+      </div>
+
+      <!-- Nur für eingeloggte Nutzer -->
+      <div id="review-form" style="display:none;">
+        <label for="review-rating">Bewertung:</label>
+        <select id="review-rating">
+          <option value="5">★★★★★</option>
+          <option value="4">★★★★☆</option>
+          <option value="3">★★★☆☆</option>
+          <option value="2">★★☆☆☆</option>
+          <option value="1">★☆☆☆☆</option>
+        </select>
+        <textarea
+                id="review-comment"
+                rows="3"
+                placeholder="Dein Kommentar…"
+        ></textarea>
+        <button id="submit-review">Absenden</button>
+      </div>
+
+      <!-- Für Gäste -->
+      <div id="login-to-review" style="display:none; color:red;">
+        Bitte <a href="login.html">einloggen</a>, um eine Bewertung abzugeben.
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- INLINE-WARENKORB als Drop-Zone -->
+<aside id="cart-drop-zone" class="cart-drop-zone">
   <h2><i class="fas fa-shopping-cart"></i> Warenkorb</h2>
   <div id="cart-list"></div>
   <div class="total">
-    <b>Gesamtsumme:</b> <span id="cart-total">€0.00</span>
+    <strong>Gesamtsumme:</strong>
+    <span id="cart-total">€0.00</span>
   </div>
-</div>
+</aside>
 
-<!-- Modal für Detailansicht -->
-<div id="modal" class="modal hidden">
+<!-- MODAL-WARENKORB -->
+<div id="cart-modal" class="modal hidden">
   <div class="modal-content">
-    <span id="modal-close" class="close">&times;</span>
-    <img id="modal-image" src="/img/default.png" alt="Produktbild" style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
-    <h2 id="modal-title"></h2>
-    <p id="modal-description"></p>
-    <p><b>Preis:</b> €<span id="modal-price"></span></p>
-    <p><b>Kategorie:</b> <span id="modal-category"></span></p>
+    <button id="cart-close" class="close">&times;</button>
+    <h2>Dein Warenkorb</h2>
+    <div id="cart-modal-list"></div>
+    <div class="modal-total">
+      <strong>Gesamt:</strong>
+      <span id="cart-total-modal">€0.00</span>
+    </div>
+    <button id="cart-modal-checkout">Zur Kasse</button>
   </div>
 </div>
 
-<!-- Checkout -->
-<div id="checkout">
-  <label for="payment-method"><b>Zahlungsart:</b></label>
-  <select id="payment-method" required>
-    <option value="">Bitte wählen...</option>
-    <option value="Überweisung">Überweisung</option>
-    <option value="PayPal">PayPal</option>
-    <option value="Gutschein">Gutschein</option>
-  </select>
+<!-- CHECKOUT-BEREICH -->
+<section id="checkout">
+  <!-- transient fields for logged-in users -->
+  <div id="extras" style="display:none;">
+    <label for="payment-method"><strong>Zahlungsart:</strong></label>
+    <select id="payment-method">
+      <option value="">Bitte wählen…</option>
+      <option value="Überweisung">Überweisung</option>
+      <option value="PayPal">PayPal</option>
+    </select>
+    <br/><br/>
+    <label for="coupon-code"><strong>Gutscheincode:</strong></label>
+    <input id="coupon-code" type="text" placeholder="Code eingeben…"/>
+    <button id="apply-coupon-btn">Einlösen</button>
+    <div id="discount-info" class="discount-info"></div>
+  </div>
+  <div id="login-prompt" style="display:none; color:#c00;">
+    Bitte <a href="login.html">einloggen</a>, um Zahlung und Gutscheine zu nutzen.
+  </div>
+  <button id="checkout-btn" class="checkout-btn">Jetzt bestellen</button>
+</section>
 
-  <br><br>
-
-  <label for="coupon-code"><b>Gutscheincode:</b></label>
-  <input type="text" id="coupon-code" placeholder="Code eingeben..." />
-  <button type="button" id="apply-coupon-btn">Einlösen</button>
-
-  <div id="discount-info" style="margin-top: 10px; color: green;"></div>
-
-  <br>
-  <button id="checkout-btn">Jetzt bestellen</button>
-</div>
-
+<!-- Dein Haupt-Script -->
 <script src="js/app.js"></script>
 </body>
 </html>

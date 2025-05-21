@@ -4,7 +4,7 @@ const userId = localStorage.getItem('userId');
 
 async function fetchOrders() {
     try {
-        const response = await fetch(`http://localhost/MarLukTar/backend/logic/RequestHandler.php?route=orders&user_id=${userId}`);
+        const response = await fetch(`../backend/logic/OrderHandler.php?action=listOrdersByUser&id=${userId}`);
         const data = await response.json();
 
         const list = document.getElementById('orders-list');
@@ -19,37 +19,16 @@ async function fetchOrders() {
             const orderDiv = document.createElement('div');
             orderDiv.classList.add('order');
 
-            // Produkte anzeigen
-            const itemsHtml = order.items.map(item => {
-                const itemTotal = item.price * item.quantity;
-                return `<li>${item.name} x${item.quantity} – €${itemTotal.toFixed(2)}</li>`;
-            }).join('');
+            // Berechne Betrag aus final_total oder fallback auf total
+            const betrag = parseFloat(order.final_total ?? order.total).toFixed(2);
 
-            // Rabatt anzeigen (nur wenn > 0)
-            const discount = parseFloat(order.discount || 0);
-            const discountHtml = discount > 0
-                ? `<p><strong>Gutschein:</strong> ${order.coupon_code || 'Unbekannt'} (−€${discount.toFixed(2)})</p>`
-                : '';
-
-            // PDF-Link erstellen
-            const pdfLink = `
-                <p>
-                    <a href="http://localhost/MarLukTar/backend/logic/PDFHandler.php?order_id=${order.order_id}" 
-                       target="_blank" 
-                       style="text-decoration: none; font-weight: bold; color: darkblue;">
-                       📄 Rechnung anzeigen
-                    </a>
-                </p>
-            `;
-
-            // HTML zusammenbauen
+            // Bestellübersicht
             orderDiv.innerHTML = `
-                <h3>🧾 Bestellung #${order.order_id} – ${order.date}</h3>
-                <ul>${itemsHtml}</ul>
-                <p><strong>Zahlungsart:</strong> ${order.payment_method || 'Keine Angabe'}</p>
-                ${discountHtml}
-                <p><strong>Endsumme:</strong> <span style="color: darkgreen;">€${parseFloat(order.final_total).toFixed(2)}</span></p>
-                ${pdfLink}
+                <h3>🧾 Bestellung #${order.id} – ${order.date}</h3>
+                <p><strong>Gesamtbetrag:</strong> €${betrag}</p>
+                <p><strong>Status:</strong> ${order.status}</p>
+                <button class="pdf-btn" data-id="${order.id}">📄 Rechnung (PDF)</button>
+                <hr />
             `;
 
             list.appendChild(orderDiv);
@@ -60,5 +39,17 @@ async function fetchOrders() {
         document.getElementById('orders-list').innerHTML = '<p>Fehler beim Laden.</p>';
     }
 }
+
+// PDF-Button-Handler (Rechnung öffnen)
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.pdf-btn');
+    if (!btn) return;
+
+    const orderId = btn.dataset.id;
+    if (!orderId) return;
+
+    // PDF öffnen
+    window.open(`../backend/logic/PDFHandler.php?order_id=${orderId}`, '_blank');
+});
 
 fetchOrders();

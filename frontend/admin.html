@@ -31,7 +31,34 @@
     <div id="product-list"></div>
 </section>
 
+<!-- Kundenverwaltung -->
+<section class="container mt-5">
+    <h2>Kundenverwaltung</h2>
+    <button id="load-customers-btn" class="btn btn-primary mb-3">👥 Kunden anzeigen</button>
+    <div id="customer-list" class="customer-list"></div>
+</section>
+
+<!-- Gutscheinverwaltung -->
+<section class="container mt-5">
+    <h2>Gutscheine verwalten</h2>
+    <div class="mb-4">
+        <input type="text" id="voucher-code" class="form-control mb-2" placeholder="Gutscheincode" />
+        <input type="number" id="voucher-value" class="form-control mb-2" placeholder="Wert (€)" />
+        <input type="date" id="voucher-expiry" class="form-control mb-3" />
+        <button id="generate-voucher-btn" class="btn btn-success w-100">Gutschein erstellen</button>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <div class="p-4 bg-white rounded-4 shadow" style="min-width: 600px;">
+            <h4 class="mb-3">🧾 Übersicht aller Gutscheine</h4>
+            <div id="voucher-list"></div>
+        </div>
+    </div>
+</section>
+
 <script src="js/admin.js"></script>
 <script src="js/router.js" defer></script>
+<script src="js/voucher.js" defer></script>
+
 </body>
 </html>
