@@ -25,9 +25,9 @@ switch ($route) {
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 // Kein zusätzlicher "uploads/"-Pfad, wenn bereits enthalten
                 if (!empty($row['imageUrl']) && !str_starts_with($row['imageUrl'], 'uploads/')) {
-                    $row['imageUrl'] = $row['imageUrl']; // belassen
+                    $row['imageUrl'] = ltrim($row['imageUrl'], '/'); // belassen
                 } elseif (!empty($row['imageUrl'])) {
-                    $row['imageUrl'] = 'uploads/' . ltrim($row['imageUrl'], '/');
+                    $row['imageUrl'] = ltrim($row['imageUrl'], '/');
                 }
                 $products[] = $row;
             }

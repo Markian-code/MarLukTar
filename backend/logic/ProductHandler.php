@@ -34,7 +34,7 @@ if ($method === 'POST') {
         $description = $_POST['description'] ?? '';
         $id = $_POST['id'] ?? null;
 
-        // 🔽 Bild hochladen
+        // Bild hochladen
         $imagePath = '';
         if (!empty($_FILES['image']['name'])) {
             $uploadDir = realpath(__DIR__ . '/../../uploads') . DIRECTORY_SEPARATOR;
@@ -51,7 +51,7 @@ if ($method === 'POST') {
             }
         }
 
-        // 🟢 Produkt erstellen
+        // Produkt erstellen
         if ($action === 'create') {
             $success = $product->create($name, $price, $description, $imagePath);
 
@@ -67,7 +67,7 @@ if ($method === 'POST') {
             exit;
         }
 
-        // 🟡 Produkt aktualisieren
+        // Produkt aktualisieren
         if ($action === 'update' && $id !== null) {
             if ($imagePath === '' && method_exists($product, 'getById')) {
                 $existing = $product->getById($id);
@@ -124,7 +124,7 @@ if ($method === 'GET') {
     exit;
 }
 
-// ❌ Methode nicht erlaubt
+// Methode nicht erlaubt
 http_response_code(405);
 echo json_encode(['message' => '❌ Nicht unterstützte Methode.']);
 exit;

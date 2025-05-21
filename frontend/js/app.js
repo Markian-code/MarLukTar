@@ -260,7 +260,7 @@ async function doCheckout(){
     if (extrasSection.style.display !== 'none' && !pay) return alert('Bitte Zahlungsart wählen.');
 
     const payload = {
-        action: "create", // ✅ це обов’язково!
+        action: "create", 
         user_id: userId,
         cart,
         total: cart.reduce((s,i)=>s+i.price*i.quantity,0),
