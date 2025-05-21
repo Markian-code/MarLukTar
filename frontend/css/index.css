@@ -3,6 +3,7 @@
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   padding: 2rem;
+  justify-items: center;
 }
 
 .product {
@@ -16,6 +17,8 @@
   justify-content: space-between;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   overflow: hidden;
+  max-width: 320px;
+  width: 100%;
 }
 .product:hover {
   transform: translateY(-5px);
@@ -23,17 +26,18 @@
 }
 .product img {
   width: 100%;
-  height: 100%;
+  max-height: 250px;
   object-fit: contain;
   background: #FFFFFF;
   border-radius: 0.5rem;
   display: block;
+  margin: 0 auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .product h2 {
   font-size: 1.2rem;
   color: #141f43;
-  margin: 0.5rem 0;
+  margin: 0.8rem 0 0.4rem;
 }
 .product p {
   font-size: 0.95rem;
@@ -352,10 +356,56 @@
 }
 
 #checkout {
-  margin-top: 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  padding: 2rem;
+  background-color: rgb(252.65, 252.65, 252.65);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   text-align: center;
 }
+#checkout label {
+  display: block;
+  margin: 1rem 0 0.5rem;
+  font-weight: bold;
+  color: #141f43;
+  text-align: left;
+}
+#checkout select,
+#checkout input[type=text] {
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s ease;
+}
+#checkout select:focus,
+#checkout input[type=text]:focus {
+  border-color: #00ACC1;
+  outline: none;
+}
+#checkout #apply-coupon-btn {
+  background-color: #00ACC1;
+  color: #FFFFFF;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+#checkout #apply-coupon-btn:hover {
+  background-color: rgb(0, 126.5492227979, 142);
+}
+#checkout #discount-info {
+  margin-top: 1rem;
+  color: green;
+  font-weight: bold;
+}
 #checkout #checkout-btn {
+  margin-top: 2rem;
   padding: 0.8rem 2rem;
   font-size: 1rem;
   font-weight: bold;
@@ -373,6 +423,17 @@
 }
 #checkout #checkout-btn:active {
   transform: scale(0.98);
+}
+#checkout #login-prompt {
+  margin-top: 1rem;
+  color: #c00;
+}
+#checkout #login-prompt a {
+  color: #00ACC1;
+  text-decoration: underline;
+}
+#checkout #login-prompt a:hover {
+  color: rgb(0, 126.5492227979, 142);
 }
 
 .order-container {

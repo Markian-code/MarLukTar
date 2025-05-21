@@ -27,7 +27,7 @@ switch ($route) {
                 if (!empty($row['imageUrl']) && !str_starts_with($row['imageUrl'], 'uploads/')) {
                     $row['imageUrl'] = ltrim($row['imageUrl'], '/'); // belassen
                 } elseif (!empty($row['imageUrl'])) {
-                    $row['imageUrl'] = ltrim($row['imageUrl'], '/');
+                    $row['imageUrl'] = $row['imageUrl'];
                 }
                 $products[] = $row;
             }

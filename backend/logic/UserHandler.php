@@ -83,36 +83,36 @@ if ($method === 'POST') {
 
     // === 3. LOGIN ===
     } elseif ($route === 'login') {
-        $usernameOrEmail = trim($data['username'] ?? '');
-        $password = $data['password'] ?? '';
+    $usernameOrEmail = strtolower(trim($data['username'] ?? ''));
+    $password = $data['password'] ?? '';
 
-        if (!$usernameOrEmail || !$password) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Bitte Benutzername oder E-Mail und Passwort eingeben.']);
-            exit;
+    if (!$usernameOrEmail || !$password) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Bitte Benutzername oder E-Mail und Passwort eingeben.']);
+        exit;
+    }
+
+    try {
+        $stmt = $db->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+        $stmt->execute([$usernameOrEmail, $usernameOrEmail]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && $user['is_active'] && password_verify($password, $user['password_hash'])) {
+            echo json_encode([
+                'message' => 'Login erfolgreich!',
+                'user_id' => $user['id'],
+                'name' => $user['username'],
+                'email' => $user['email'],
+                'role' => $user['is_admin'] ? 'admin' : 'user'
+            ]);
+        } else {
+            http_response_code(401);
+            echo json_encode(['message' => 'Benutzername oder Passwort ist falsch oder Benutzer nicht aktiv.']);
         }
-
-        try {
-            $stmt = $db->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
-            $stmt->execute([$usernameOrEmail, $usernameOrEmail]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($user && password_verify($password, $user['password_hash'])) {
-                echo json_encode([
-                    'message' => 'Login erfolgreich!',
-                    'user_id' => $user['id'],
-                    'name' => $user['username'],
-                    'email' => $user['email'],
-                    'role' => $user['is_admin'] ? 'admin' : 'user'
-                ]);
-            } else {
-                http_response_code(401);
-                echo json_encode(['message' => 'Benutzername oder Passwort ist falsch.']);
-            }
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['message' => 'Fehler: ' . $e->getMessage()]);
-        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Fehler: ' . $e->getMessage()]);
+    }
 
     // === 4. PROFIL AKTUALISIEREN ===
     } elseif ($route === 'update-profile') {

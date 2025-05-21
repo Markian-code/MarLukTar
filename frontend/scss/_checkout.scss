@@ -1,10 +1,62 @@
+@use 'sass:color';
 @use 'variables';
 
 #checkout {
-  margin-top: 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  padding: 2rem;
+  background-color: variables.$background-light;
+  border-radius: variables.$border-radius;
+  box-shadow: variables.$modal-shadow;
   text-align: center;
 
+  label {
+    display: block;
+    margin: 1rem 0 0.5rem;
+    font-weight: bold;
+    color: variables.$primary-color;
+    text-align: left;
+  }
+
+  select,
+  input[type="text"] {
+    width: 100%;
+    padding: 0.7rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: variables.$border-radius;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      border-color: variables.$accent-color;
+      outline: none;
+    }
+  }
+
+  #apply-coupon-btn {
+    background-color: variables.$accent-color;
+    color: variables.$white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: variables.$border-radius;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: color.adjust(variables.$accent-color, $lightness: -10%);
+    }
+  }
+
+  #discount-info {
+    margin-top: 1rem;
+    color: green;
+    font-weight: bold;
+  }
+
   #checkout-btn {
+    margin-top: 2rem;
     padding: 0.8rem 2rem;
     font-size: 1rem;
     font-weight: bold;
@@ -23,6 +75,20 @@
 
     &:active {
       transform: scale(0.98);
+    }
+  }
+
+  #login-prompt {
+    margin-top: 1rem;
+    color: #c00;
+
+    a {
+      color: variables.$accent-color;
+      text-decoration: underline;
+
+      &:hover {
+        color: color.adjust(variables.$accent-color, $lightness: -10%);
+      }
     }
   }
 }

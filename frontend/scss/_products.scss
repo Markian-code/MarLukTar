@@ -7,19 +7,22 @@
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   padding: 2rem;
+  justify-items: center;
 }
 
 .product {
   background-color: $background-light;
-  border-radius:  $border-radius;
-  box-shadow:     $modal-shadow;
-  padding:        1rem;
-  text-align:     center;
-  display:        flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition:     transform $transition-fast, box-shadow $transition-fast;
-  overflow:       hidden;
+  border-radius:     $border-radius;
+  box-shadow:        $modal-shadow;
+  padding:           1rem;
+  text-align:        center;
+  display:           flex;
+  flex-direction:    column;
+  justify-content:   space-between;
+  transition:        transform $transition-fast, box-shadow $transition-fast;
+  overflow:          hidden;
+  max-width:         320px; // verhindert zu breite Karten bei nur 1 Produkt
+  width:             100%;
 
   &:hover {
     transform:   translateY(-5px);
@@ -27,19 +30,20 @@
   }
 
   img {
-    width:       100%;
-    height:      100%;
-    object-fit:  contain;
-    background:  $white;
+    width:         100%;
+    max-height:    250px;
+    object-fit:    contain;
+    background:    $white;
     border-radius: $border-radius;
-    display:     block;
-    box-shadow:  0 2px 8px rgba(0, 0, 0, 0.1);
+    display:       block;
+    margin:        0 auto;
+    box-shadow:    0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   h2 {
     font-size: 1.2rem;
     color:     $primary-color;
-    margin:    0.5rem 0;
+    margin:    0.8rem 0 0.4rem;
   }
 
   p {
